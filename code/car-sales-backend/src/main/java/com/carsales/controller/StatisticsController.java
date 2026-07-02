@@ -1,0 +1,47 @@
+package com.carsales.controller;
+
+import com.carsales.dto.ApiResponse;
+import com.carsales.service.StatisticsService;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+public class StatisticsController {
+
+    private final StatisticsService statisticsService;
+
+    public StatisticsController(StatisticsService statisticsService) {
+        this.statisticsService = statisticsService;
+    }
+
+    @GetMapping("/api/statistics/test-drive-hot")
+    public ApiResponse<List<Map<String, Object>>> getTestDriveHotStats() {
+        return ApiResponse.success(statisticsService.getTestDriveHotStats());
+    }
+
+    @GetMapping("/api/statistics/sales-hot")
+    public ApiResponse<List<Map<String, Object>>> getSalesHotStats() {
+        return ApiResponse.success(statisticsService.getSalesHotStats());
+    }
+
+    @GetMapping("/api/statistics/sales-share")
+    public ApiResponse<List<Map<String, Object>>> getSalesShareStats() {
+        return ApiResponse.success(statisticsService.getSalesShareStats());
+    }
+
+    @GetMapping("/api/queries/sales")
+    public ApiResponse<List<Map<String, Object>>> querySales(
+            @RequestParam(required = false) String carType,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) String customerName,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        return ApiResponse.success(statisticsService.querySales(carType, minPrice, maxPrice, customerName, startDate, endDate));
+    }
+}
