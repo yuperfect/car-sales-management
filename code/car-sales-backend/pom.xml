@@ -19,7 +19,7 @@
     <description>汽车销售管理系统 - 后端</description>
 
     <properties>
-        <java.version>25</java.version>
+        <java.version>17</java.version>
         <lombok.version>1.18.46</lombok.version>
     </properties>
 
