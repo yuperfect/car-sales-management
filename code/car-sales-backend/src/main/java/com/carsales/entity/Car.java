@@ -1,13 +1,13 @@
 package com.carsales.entity;
 
 import com.carsales.enums.CarStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -27,6 +27,7 @@ public class Car {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", insertable = false, updatable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Category category;
 
     @Column(name = "brand", nullable = false, length = 50)
@@ -35,8 +36,8 @@ public class Car {
     @Column(name = "model", nullable = false, length = 100)
     private String model;
 
-    @Column(name = "year", columnDefinition = "YEAR")
-    private LocalDate year;
+    @Column(name = "year")
+    private Integer year;
 
     @Column(name = "color", length = 30)
     private String color;

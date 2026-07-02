@@ -9,10 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -71,7 +68,7 @@ public class ExcelImportUtil {
                 if (yearCell != null) {
                     double yearVal = getNumericCellValue(yearCell);
                     if (yearVal > 0) {
-                        car.setYear(LocalDate.of((int) yearVal, 1, 1));
+                        car.setYear((int) yearVal);
                     }
                 }
 
