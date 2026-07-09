@@ -1,40 +1,31 @@
 # Car Sales Management System - Status Check
-Write-Host ""
-Write-Host "====== System Status ======" -ForegroundColor Cyan
-Write-Host ""
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  汽车销售管理系统 - 状态检查" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
 
-function CheckService {
-    param([string]$Name, [int]$Port, [string]$Url)
-    $portOk = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
-    if (-not $portOk) {
-        Write-Host "  [STOPPED] $Name (port $Port)" -ForegroundColor Red
-        return
-    }
-    if ($Url) {
+$services = @(
+    @{Port=8080; Name="后端 (Spring Boot)"; Url="http://localhost:8080/api/cars"},
+    @{Port=5173; Name="管理端 (Vite Admin)"; Url="http://localhost:5173"},
+    @{Port=3000; Name="客户端 (Vite Client)"; Url="http://localhost:3000"}
+)
+
+foreach ($svc in $services) {
+    $port = $svc.Port
+    $name = $svc.Name
+    
+    # Check port
+    $conn = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($conn -and $conn.State -eq "Listen") {
+        # Check HTTP
         try {
-            $r = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 3
-            Write-Host "  [RUNNING] $Name (port $Port, HTTP $($r.StatusCode))" -ForegroundColor Green
+            $r = Invoke-WebRequest -Uri $svc.Url -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+            Write-Host "  [RUNNING] $name ($port) - HTTP $($r.StatusCode)" -ForegroundColor Green
         } catch {
-            Write-Host "  [WARN]    $Name (port $Port, no HTTP response)" -ForegroundColor Yellow
+            Write-Host "  [STARTING] $name ($port) - Process running, HTTP not ready" -ForegroundColor Yellow
         }
     } else {
-        Write-Host "  [RUNNING] $Name (port $Port)" -ForegroundColor Green
+        Write-Host "  [STOPPED] $name ($port)" -ForegroundColor Red
     }
 }
 
-CheckService -Name "MySQL"          -Port 3306
-CheckService -Name "Backend API"    -Port 8080 -Url "http://localhost:8080/api/cars/1"
-CheckService -Name "Client"         -Port 3000 -Url "http://localhost:3000"
-CheckService -Name "Admin"          -Port 5173 -Url "http://localhost:5173"
-
-Write-Host ""
-try {
-    $r = Invoke-WebRequest -Uri "http://localhost:8080/api/cars" -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
-    $data = $r.Content | ConvertFrom-Json
-    Write-Host "  Car count: $($data.data.Count)" -ForegroundColor Gray
-} catch {}
-
-Write-Host ""
-Write-Host "  Start: .\start-all.ps1" -ForegroundColor Gray
-Write-Host "  Stop:  .\stop-all.ps1"  -ForegroundColor Gray
-Write-Host ""
+Write-Host "========================================" -ForegroundColor Cyan
