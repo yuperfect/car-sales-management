@@ -79,8 +79,9 @@ public class CarController {
 
     @GetMapping("/template")
     public void downloadTemplate(HttpServletResponse response) throws IOException {
+        String filename = java.net.URLEncoder.encode("车辆导入模板.xlsx", "UTF-8");
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=\"车辆导入模板.xlsx\"");
+        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + filename);
 
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("车辆数据");
@@ -91,6 +92,7 @@ public class CarController {
                 sheet.autoSizeColumn(i);
             }
             workbook.write(response.getOutputStream());
+            response.getOutputStream().flush();
         }
     }
 

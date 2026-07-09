@@ -32,9 +32,15 @@ export const deleteCar = (id) => request.delete(`/cars/${id}`)
 export const importCars = (formData) => request.post('/cars/import', formData, {
   headers: { 'Content-Type': 'multipart/form-data' }
 })
-export const downloadTemplate = () => request.get('/cars/template', {
-  responseType: 'blob'
-})
+// 模板下载不走axios拦截器（后端直接返回二进制流）
+export const downloadTemplate = async () => {
+  const response = await axios.get('/api/cars/template', {
+    baseURL: '',
+    responseType: 'blob',
+    timeout: 15000
+  })
+  return response.data
+}
 
 // ==================== 客户管理 ====================
 export const fetchCustomers = (params) => request.get('/customers', { params })
