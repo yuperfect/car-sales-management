@@ -61,6 +61,7 @@ CREATE TABLE appointment (
     status VARCHAR(10) NOT NULL DEFAULT 'pending' COMMENT '状态：pending待确认 / confirmed已确认 / cancelled已取消',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     handle_time DATETIME DEFAULT NULL COMMENT '处理时间',
+    handler VARCHAR(50) DEFAULT NULL COMMENT '处理人',
     remark VARCHAR(500) DEFAULT NULL COMMENT '备注',
     CONSTRAINT fk_appointment_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
     CONSTRAINT fk_appointment_car FOREIGN KEY (car_id) REFERENCES car(car_id)
@@ -89,35 +90,7 @@ CREATE TABLE `order` (
 -- 5. 触发器
 -- ============================================
 
--- 触发器1：订单确认后自动扣减库存
-DELIMITER //
-CREATE TRIGGER trg_order_confirm_deduct_stock
-AFTER UPDATE ON `order`
-FOR EACH ROW
-BEGIN
-    IF NEW.status = 'confirmed' AND OLD.status = 'pending' THEN
-        UPDATE car
-        SET stock = stock - NEW.quantity
-        WHERE car_id = NEW.car_id;
-    END IF;
-END//
-DELIMITER ;
-
--- 触发器2：订单取消后自动恢复库存
-DELIMITER //
-CREATE TRIGGER trg_order_cancel_restore_stock
-AFTER UPDATE ON `order`
-FOR EACH ROW
-BEGIN
-    IF NEW.status = 'cancelled' AND OLD.status = 'confirmed' THEN
-        UPDATE car
-        SET stock = stock + NEW.quantity
-        WHERE car_id = NEW.car_id;
-    END IF;
-END//
-DELIMITER ;
-
--- 触发器3：库存归零后自动更新车辆状态
+-- 触发器：库存归零后自动更新车辆状态
 DELIMITER //
 CREATE TRIGGER trg_car_stock_check_update_status
 BEFORE UPDATE ON car

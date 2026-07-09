@@ -56,6 +56,10 @@ public class CarService {
         return carRepository.findByFilters(brand, model, minPrice, maxPrice);
     }
 
+    public List<Car> findByKeyword(String keyword) {
+        return carRepository.findByKeyword(keyword);
+    }
+
     @Transactional
     public boolean deductStock(Integer carId, int quantity) {
         return carRepository.findById(carId).map(car -> {

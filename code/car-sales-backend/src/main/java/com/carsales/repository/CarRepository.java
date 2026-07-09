@@ -28,4 +28,7 @@ public interface CarRepository extends JpaRepository<Car, Integer> {
                             @Param("model") String model,
                             @Param("minPrice") BigDecimal minPrice,
                             @Param("maxPrice") BigDecimal maxPrice);
+
+    @Query("SELECT c FROM Car c WHERE c.brand LIKE %:keyword% OR c.model LIKE %:keyword%")
+    List<Car> findByKeyword(@Param("keyword") String keyword);
 }

@@ -53,7 +53,7 @@ public class AppointmentController {
                                              @RequestBody(required = false) Map<String, Object> body) {
         try {
             String handler = body != null ? (String) body.getOrDefault("handler", "admin") : "admin";
-            return ApiResponse.success(appointmentService.confirm(id));
+            return ApiResponse.success(appointmentService.confirm(id, handler));
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
         }

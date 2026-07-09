@@ -49,6 +49,9 @@ public class Appointment {
     @Column(name = "handle_time")
     private LocalDateTime handleTime;
 
+    @Column(name = "handler", length = 50)
+    private String handler;
+
     @Column(name = "remark", length = 500)
     private String remark;
 

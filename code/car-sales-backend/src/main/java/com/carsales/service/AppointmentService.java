@@ -69,13 +69,14 @@ public class AppointmentService {
     }
 
     @Transactional
-    public Appointment confirm(Integer id) {
+    public Appointment confirm(Integer id, String handler) {
         return appointmentRepository.findById(id).map(apt -> {
             if (!"pending".equals(apt.getStatus())) {
                 throw new RuntimeException("Only pending appointment can be confirmed");
             }
             apt.setStatus("confirmed");
             apt.setHandleTime(LocalDateTime.now());
+            apt.setHandler(handler);
             return appointmentRepository.save(apt);
         }).orElseThrow(() -> new RuntimeException("Appointment not found with id: " + id));
     }

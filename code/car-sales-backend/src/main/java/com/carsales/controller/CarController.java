@@ -25,7 +25,11 @@ public class CarController {
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model,
             @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice) {
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) String keyword) {
+        if (keyword != null && !keyword.isBlank()) {
+            return ApiResponse.success(carService.findByKeyword(keyword));
+        }
         if ((brand != null && !brand.isBlank()) || (model != null && !model.isBlank()) || minPrice != null || maxPrice != null) {
             return ApiResponse.success(carService.findByFilters(brand, model, minPrice, maxPrice));
         }
