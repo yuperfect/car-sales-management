@@ -12,12 +12,8 @@ USE car_sales_db;
 -- 清理旧表
 -- ============================================
 DROP TABLE IF EXISTS purchase_order;
-DROP TABLE IF EXISTS `order`;
 DROP TABLE IF EXISTS appointment;
-DROP TABLE IF EXISTS test_drive;
 DROP TABLE IF EXISTS car;
-DROP TABLE IF EXISTS category;
-DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS customer;
 
 -- ============================================
@@ -68,9 +64,9 @@ CREATE TABLE appointment (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='预约表';
 
 -- ============================================
--- 4. 订单表 (order)
+-- 4. 订单表 (purchase_order)
 -- ============================================
-CREATE TABLE `order` (
+CREATE TABLE purchase_order (
     order_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '订单编号',
     customer_id INT NOT NULL COMMENT '客户编号',
     car_id INT NOT NULL COMMENT '车辆编号',

@@ -40,7 +40,7 @@ INSERT INTO appointment (customer_id, car_id, appointment_time, status, create_t
 -- 4. 订单数据
 -- ============================================
 -- 库存已在 car 表预扣，订单状态初始为 confirmed 以便显示统计数据
-INSERT INTO `order` (customer_id, car_id, quantity, unit_price, total_amount, order_time, status, handle_time, handler) VALUES
+INSERT INTO purchase_order (customer_id, car_id, quantity, unit_price, total_amount, order_time, status, handle_time, handler) VALUES
 (1, 1, 1, 185800.00, 185800.00, '2026-07-15 10:00:00', 'confirmed', '2026-07-16 09:00:00', '管理员'),
 (1, 5, 1, 179800.00, 179800.00, '2026-07-16 11:00:00', 'confirmed', '2026-07-17 10:00:00', '管理员'),
 (2, 2, 1, 195900.00, 195900.00, '2026-07-17 14:00:00', 'cancelled', '2026-07-19 15:00:00', '管理员'),

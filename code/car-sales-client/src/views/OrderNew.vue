@@ -27,7 +27,10 @@
               class="form-control"
               v-model="form.customerPhone"
               required
-              placeholder="请输入您的电话号码"
+              maxlength="11"
+              pattern="1[3-9]\d{9}"
+              title="请输入11位手机号"
+              placeholder="请输入11位手机号"
             />
           </div>
 
@@ -36,7 +39,7 @@
             <label class="form-label">选择车辆</label>
             <select v-model="form.carId" class="form-control" required @change="onCarChange">
               <option value="" disabled>请选择车辆</option>
-              <option v-for="car in cars" :key="car.carId" :value="car.carId">
+              <option v-for="car in onSaleCars" :key="car.carId" :value="car.carId">
                 {{ car.brand }} {{ car.model }} - ¥{{ formatPrice(car.price) }} (库存: {{ car.stock }})
               </option>
             </select>
@@ -99,6 +102,7 @@ const router = useRouter()
 
 const cars = ref([])
 const submitting = ref(false)
+const onSaleCars = computed(() => cars.value.filter(c => c.status === 'on_sale'))
 const successMsg = ref('')
 const errMsg = ref('')
 

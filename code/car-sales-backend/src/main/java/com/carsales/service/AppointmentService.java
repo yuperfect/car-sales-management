@@ -46,6 +46,10 @@ public class AppointmentService {
 
     @Transactional
     public Appointment create(String customerName, String customerPhone, Integer carId, LocalDateTime appointmentTime, String remark) {
+        // validate phone
+        if (customerPhone == null || !customerPhone.matches("1[3-9]\\d{9}")) {
+            throw new RuntimeException("请输入正确的11位手机号");
+        }
         // find or create customer
         Customer customer = customerRepository.findByPhone(customerPhone)
                 .orElseGet(() -> {

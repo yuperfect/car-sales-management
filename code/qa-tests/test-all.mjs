@@ -84,7 +84,7 @@ async function testClient(browser) {
 
   if (hasForm) {
     await nameInp.fill('张三');
-    const phoneInp = page.locator('input[placeholder*="电话"]').first();
+    const phoneInp = page.locator('input[type="tel"], input[placeholder*="手机"], input[placeholder*="电话"]').first();
     if (await phoneInp.count() > 0) {
       await phoneInp.fill('13800138000');
     }
@@ -129,7 +129,7 @@ async function testClient(browser) {
 
   if (hasOrderForm) {
     await oName.fill('李四');
-    const oPhone = page.locator('input[placeholder*="电话"]').first();
+    const oPhone = page.locator('input[type="tel"], input[placeholder*="手机"], input[placeholder*="电话"]').first();
     if (await oPhone.count() > 0) await oPhone.fill('13900139000');
 
     // 选择车辆
