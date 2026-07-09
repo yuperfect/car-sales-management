@@ -31,10 +31,10 @@ echo.
 echo ========================================
 echo  正在打开浏览器...
 echo ========================================
+timeout /t 5 /nobreak >nul
+start "" http://localhost:3000
 timeout /t 2 /nobreak >nul
-start http://localhost:3000
-timeout /t 1 /nobreak >nul
-start http://localhost:5173/admin
+start "" http://localhost:5173/admin
 
 echo.
 echo ========================================
