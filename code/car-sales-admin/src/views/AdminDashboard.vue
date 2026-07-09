@@ -13,7 +13,7 @@
       </div>
       <div class="stat-card">
         <span class="stat-label">待确认预约</span>
-        <span class="stat-value orange">{{ stats.pendingTestDrives ?? '-' }}</span>
+        <span class="stat-value orange">{{ stats.pendingAppointments ?? '-' }}</span>
       </div>
       <div class="stat-card">
         <span class="stat-label">待确认订单</span>
@@ -28,7 +28,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchCars, fetchUsers, fetchTestDrives, fetchOrders } from '../api/index.js'
+import { fetchCars, fetchCustomers, fetchAppointments, fetchOrders } from '../api/index.js'
 
 const stats = ref({})
 const loading = ref(false)
@@ -38,17 +38,17 @@ onMounted(async () => {
   loading.value = true
   error.value = ''
   try {
-    const [cars, users, testDrives, orders] = await Promise.all([
+    const [cars, customers, appointments, orders] = await Promise.all([
       fetchCars(),
-      fetchUsers(),
-      fetchTestDrives(),
+      fetchCustomers(),
+      fetchAppointments(),
       fetchOrders()
     ])
     stats.value = {
       totalCars: Array.isArray(cars) ? cars.length : 0,
-      totalUsers: Array.isArray(users) ? users.length : 0,
-      pendingTestDrives: Array.isArray(testDrives)
-        ? testDrives.filter(t => t.status === 'pending').length
+      totalUsers: Array.isArray(customers) ? customers.length : 0,
+      pendingAppointments: Array.isArray(appointments)
+        ? appointments.filter(t => t.status === 'pending').length
         : 0,
       pendingOrders: Array.isArray(orders)
         ? orders.filter(o => o.status === 'pending').length

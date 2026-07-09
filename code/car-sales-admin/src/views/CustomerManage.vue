@@ -27,24 +27,20 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>用户名</th>
               <th>姓名</th>
               <th>电话</th>
-              <th>邮箱</th>
-              <th>注册时间</th>
+              <th>首次提交时间</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in users" :key="user.id">
-              <td>{{ user.id }}</td>
-              <td>{{ user.username }}</td>
-              <td>{{ user.name }}</td>
-              <td>{{ user.phone }}</td>
-              <td>{{ user.email }}</td>
-              <td>{{ formatDate(user.createdAt) }}</td>
+            <tr v-for="customer in customers" :key="customer.id">
+              <td>{{ customer.id }}</td>
+              <td>{{ customer.realName || '-' }}</td>
+              <td>{{ customer.phone || '-' }}</td>
+              <td>{{ formatDate(customer.firstSubmitTime) }}</td>
             </tr>
-            <tr v-if="users.length === 0">
-              <td colspan="6" style="text-align: center; color: #999;">暂无数据</td>
+            <tr v-if="customers.length === 0">
+              <td colspan="4" style="text-align: center; color: #999;">暂无数据</td>
             </tr>
           </tbody>
         </table>
@@ -55,22 +51,22 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchUsers } from '../api/index.js'
+import { fetchCustomers } from '../api/index.js'
 
-const users = ref([])
+const customers = ref([])
 const loading = ref(false)
 const error = ref('')
 const searchKeyword = ref('')
 
-onMounted(() => loadUsers())
+onMounted(() => loadCustomers())
 
-async function loadUsers(keyword) {
+async function loadCustomers(keyword) {
   loading.value = true
   error.value = ''
   try {
     const params = {}
     if (keyword) params.keyword = keyword
-    users.value = await fetchUsers(params)
+    customers.value = await fetchCustomers(params)
   } catch (e) {
     error.value = '获取客户列表失败：' + (e.message || '网络错误')
   } finally {
@@ -79,12 +75,12 @@ async function loadUsers(keyword) {
 }
 
 function doSearch() {
-  loadUsers(searchKeyword.value.trim())
+  loadCustomers(searchKeyword.value.trim())
 }
 
 function resetSearch() {
   searchKeyword.value = ''
-  loadUsers()
+  loadCustomers()
 }
 
 function formatDate(dateStr) {

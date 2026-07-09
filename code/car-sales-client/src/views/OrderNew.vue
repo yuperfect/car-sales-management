@@ -7,6 +7,30 @@
         <div v-if="errMsg" class="alert alert-error">{{ errMsg }}</div>
 
         <form @submit.prevent="handleSubmit">
+          <!-- 姓名 -->
+          <div class="form-group">
+            <label class="form-label">姓名</label>
+            <input
+              type="text"
+              class="form-control"
+              v-model="form.customerName"
+              required
+              placeholder="请输入您的姓名"
+            />
+          </div>
+
+          <!-- 电话 -->
+          <div class="form-group">
+            <label class="form-label">电话</label>
+            <input
+              type="tel"
+              class="form-control"
+              v-model="form.customerPhone"
+              required
+              placeholder="请输入您的电话号码"
+            />
+          </div>
+
           <!-- 选择车辆 -->
           <div class="form-group">
             <label class="form-label">选择车辆</label>
@@ -79,6 +103,8 @@ const successMsg = ref('')
 const errMsg = ref('')
 
 const form = ref({
+  customerName: '',
+  customerPhone: '',
   carId: '',
   quantity: 1
 })
@@ -119,6 +145,14 @@ async function fetchCars() {
 }
 
 async function handleSubmit() {
+  if (!form.value.customerName.trim()) {
+    errMsg.value = '请输入姓名'
+    return
+  }
+  if (!form.value.customerPhone.trim()) {
+    errMsg.value = '请输入电话'
+    return
+  }
   if (!form.value.carId) {
     errMsg.value = '请选择车辆'
     return
@@ -133,14 +167,17 @@ async function handleSubmit() {
   successMsg.value = ''
 
   try {
-    await createOrder({
+    const result = await createOrder({
+      customerName: form.value.customerName.trim(),
+      customerPhone: form.value.customerPhone.trim(),
       carId: form.value.carId,
       quantity: Number(form.value.quantity)
     })
-    successMsg.value = '订单提交成功！正在跳转到我的订单...'
+    const code = result?.code || result?.id || ''
+    successMsg.value = `订单提交成功！订单编号: ${code}`
     setTimeout(() => {
       router.push('/my/orders')
-    }, 1500)
+    }, 2000)
   } catch (e) {
     errMsg.value = e.message || '提交失败，请重试'
   } finally {

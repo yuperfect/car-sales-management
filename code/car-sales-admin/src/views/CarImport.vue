@@ -4,8 +4,15 @@
       <div class="card-header">Excel 导入车辆</div>
 
       <p style="color: #666; margin-bottom: 20px;">
-        上传 .xlsx 文件，批量导入车辆信息。文件需包含：品牌、车型、分类、年份、颜色、价格、库存等列。
+        上传 .xlsx 文件，批量导入车辆信息。文件需包含：品牌、车型、排量、变速箱、颜色、价格、库存等列。
       </p>
+
+      <!-- Download Template -->
+      <div style="margin-bottom: 16px;">
+        <button class="btn" :disabled="downloading" @click="handleDownloadTemplate">
+          {{ downloading ? '下载中...' : '📄 下载模板' }}
+        </button>
+      </div>
 
       <!-- Upload Area -->
       <div
@@ -56,11 +63,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import { importCars } from '../api/index.js'
+import { importCars, downloadTemplate } from '../api/index.js'
 
 const fileInput = ref(null)
 const selectedFile = ref(null)
 const uploading = ref(false)
+const downloading = ref(false)
 const error = ref('')
 const result = ref(null)
 
@@ -99,6 +107,25 @@ function clearFile() {
   result.value = null
   error.value = ''
   if (fileInput.value) fileInput.value.value = ''
+}
+
+async function handleDownloadTemplate() {
+  downloading.value = true
+  try {
+    const blob = await downloadTemplate()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '车辆导入模板.xlsx'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+  } catch (e) {
+    error.value = '模板下载失败：' + (e.message || '网络错误')
+  } finally {
+    downloading.value = false
+  }
 }
 
 async function uploadFile() {

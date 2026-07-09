@@ -5,12 +5,6 @@ const request = axios.create({
   timeout: 15000
 })
 
-// 请求拦截器：自动添加 userId 参数
-request.interceptors.request.use(config => {
-  config.params = { ...config.params, userId: 1 }
-  return config
-})
-
 // 响应拦截器：统一处理返回数据
 request.interceptors.response.use(
   response => {
@@ -38,24 +32,30 @@ export const deleteCar = (id) => request.delete(`/cars/${id}`)
 export const importCars = (formData) => request.post('/cars/import', formData, {
   headers: { 'Content-Type': 'multipart/form-data' }
 })
+export const downloadTemplate = () => request.get('/cars/template', {
+  responseType: 'blob'
+})
 
 // ==================== 客户管理 ====================
-export const fetchUsers = (params) => request.get('/users', { params })
+export const fetchCustomers = (params) => request.get('/customers', { params })
 
-// ==================== 试驾预约管理 ====================
-export const fetchTestDrives = (params) => request.get('/test-drives', { params })
-export const confirmTestDrive = (id) => request.put(`/test-drives/${id}/confirm`)
+// ==================== 预约管理 ====================
+export const fetchAppointments = (params) => request.get('/appointments', { params })
+export const confirmAppointment = (id, handler) => request.put(`/appointments/${id}/confirm`, { handler })
+export const rejectAppointment = (id) => request.put(`/appointments/${id}/reject`)
 
 // ==================== 订单管理 ====================
 export const fetchOrders = (params) => request.get('/purchase-orders', { params })
-export const confirmOrder = (id) => request.put(`/purchase-orders/${id}/confirm`)
+export const confirmOrder = (id, handler) => request.put(`/purchase-orders/${id}/confirm`, { handler })
+export const cancelOrder = (id) => request.put(`/purchase-orders/${id}/cancel`)
 
 // ==================== 综合查询 ====================
 export const querySales = (params) => request.get('/queries/sales', { params })
 
 // ==================== 统计分析 ====================
-export const fetchTestDriveHotStats = () => request.get('/statistics/test-drive-hot')
+export const fetchAppointmentHotStats = () => request.get('/statistics/appointment-hot')
 export const fetchSalesHotStats = () => request.get('/statistics/sales-hot')
 export const fetchSalesShareStats = () => request.get('/statistics/sales-share')
+export const fetchPriceRangeStats = () => request.get('/statistics/price-range')
 
 export default request

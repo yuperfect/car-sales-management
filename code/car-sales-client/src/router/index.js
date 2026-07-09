@@ -14,15 +14,15 @@ const routes = [
     meta: { title: '车辆详情' }
   },
   {
-    path: '/test-drive/new',
-    name: 'TestDriveNew',
-    component: () => import('../views/TestDriveNew.vue'),
-    meta: { title: '提交试驾预约' }
+    path: '/appointment/new',
+    name: 'AppointmentNew',
+    component: () => import('../views/AppointmentNew.vue'),
+    meta: { title: '提交预约' }
   },
   {
-    path: '/my/test-drives',
-    name: 'MyTestDrives',
-    component: () => import('../views/MyTestDrives.vue'),
+    path: '/my/appointments',
+    name: 'MyAppointments',
+    component: () => import('../views/MyAppointments.vue'),
     meta: { title: '我的预约' }
   },
   {
@@ -38,10 +38,10 @@ const routes = [
     meta: { title: '我的订单' }
   },
   {
-    path: '/my/profile',
-    name: 'Profile',
-    component: () => import('../views/Profile.vue'),
-    meta: { title: '个人信息' }
+    path: '/query',
+    name: 'QueryLookup',
+    component: () => import('../views/QueryLookup.vue'),
+    meta: { title: '查询中心' }
   }
 ]
 

@@ -37,15 +37,15 @@ const routes = [
   },
   {
     path: '/admin/users',
-    name: 'UserManage',
-    component: () => import('../views/UserManage.vue'),
+    name: 'CustomerManage',
+    component: () => import('../views/CustomerManage.vue'),
     meta: { title: '客户管理' }
   },
   {
-    path: '/admin/test-drives',
-    name: 'TestDriveManage',
-    component: () => import('../views/TestDriveManage.vue'),
-    meta: { title: '试驾预约管理' }
+    path: '/admin/appointments',
+    name: 'AppointmentManage',
+    component: () => import('../views/AppointmentManage.vue'),
+    meta: { title: '预约管理' }
   },
   {
     path: '/admin/orders',

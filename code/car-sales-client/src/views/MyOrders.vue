@@ -1,82 +1,102 @@
 <template>
   <div>
-    <!-- Loading -->
-    <div v-if="loading" class="loading">
-      <div class="loading-spinner"></div>
-      <p>正在加载订单数据...</p>
+    <!-- 查询区域 -->
+    <div class="card" style="max-width: 560px; margin-bottom: 20px;">
+      <div class="card-body">
+        <div class="flex gap-8" style="align-items: flex-end;">
+          <div class="form-group" style="flex: 1; margin-bottom: 0;">
+            <label class="form-label">订单编号</label>
+            <input
+              type="text"
+              class="form-control"
+              v-model="queryCode"
+              placeholder="请输入订单编号"
+              @keyup.enter="handleQuery"
+            />
+          </div>
+          <button class="btn btn-primary" @click="handleQuery" :disabled="querying">
+            {{ querying ? '查询中...' : '查询' }}
+          </button>
+        </div>
+        <div v-if="queryErr" class="alert alert-error" style="margin-top: 12px;">{{ queryErr }}</div>
+      </div>
     </div>
 
-    <!-- Error -->
-    <div v-else-if="error" class="error-message">
-      <p>{{ error }}</p>
-      <button class="btn btn-primary" @click="fetchData">重新加载</button>
-    </div>
+    <!-- 结果详情 -->
+    <div v-if="order" class="card">
+      <div class="card-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="margin: 0;">订单详情</h3>
+          <span class="tag" :class="statusClass(order.status)">
+            {{ statusText(order.status) }}
+          </span>
+        </div>
 
-    <!-- Empty -->
-    <div v-else-if="list.length === 0" class="empty-state">
-      <div class="empty-icon">📦</div>
-      <p>暂无订单记录</p>
-      <router-link to="/orders/new" class="btn btn-success" style="display: inline-block; margin-top: 12px;">
-        立即下单
-      </router-link>
-    </div>
+        <div class="detail-specs">
+          <div class="spec-item">
+            <div class="spec-label">订单编号</div>
+            <div class="spec-value">{{ order.code || order.id }}</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">车辆</div>
+            <div class="spec-value">
+              <router-link :to="`/cars/${order.carId}`">
+                {{ order.carBrand || order.brand || '—' }} {{ order.carModel || order.model || '' }}
+              </router-link>
+            </div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">数量</div>
+            <div class="spec-value">{{ order.quantity }}</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">单价</div>
+            <div class="spec-value">¥{{ formatPrice(order.unitPrice || order.price) }}</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">总价</div>
+            <div class="spec-value" style="color: var(--danger); font-weight: 600;">
+              ¥{{ formatPrice(order.totalAmount || order.totalPrice) }}
+            </div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">下单时间</div>
+            <div class="spec-value">{{ order.createTime || order.createdAt || '—' }}</div>
+          </div>
+          <div class="spec-item" v-if="order.handler">
+            <div class="spec-label">处理人</div>
+            <div class="spec-value">{{ order.handler }}</div>
+          </div>
+          <div class="spec-item" v-if="order.handleTime">
+            <div class="spec-label">处理时间</div>
+            <div class="spec-value">{{ order.handleTime }}</div>
+          </div>
+        </div>
 
-    <!-- 表格 -->
-    <div v-else class="card">
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>车辆</th>
-              <th>数量</th>
-              <th>总价</th>
-              <th>状态</th>
-              <th>下单时间</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in list" :key="item.id">
-              <td>
-                <router-link :to="`/cars/${item.carId}`">
-                  {{ item.carBrand || item.brand || '—' }} {{ item.carModel || item.model || '' }}
-                </router-link>
-              </td>
-              <td>{{ item.quantity }}</td>
-              <td style="font-weight: 600; color: var(--danger);">¥{{ formatPrice(item.totalPrice) }}</td>
-              <td>
-                <span class="tag" :class="statusClass(item.status)">
-                  {{ statusText(item.status) }}
-                </span>
-              </td>
-              <td>{{ item.createTime || item.createdAt || '—' }}</td>
-              <td>
-                <button
-                  v-if="item.status === 'pending'"
-                  class="btn btn-danger btn-sm"
-                  @click="handleCancel(item)"
-                  :disabled="cancellingId === item.id"
-                >
-                  {{ cancellingId === item.id ? '取消中...' : '取消' }}
-                </button>
-                <span v-else style="color: var(--text-light); font-size: 13px;">—</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div style="margin-top: 20px;">
+          <button
+            v-if="order.status === 'pending'"
+            class="btn btn-danger"
+            @click="handleCancel(order)"
+            :disabled="cancelling"
+          >
+            {{ cancelling ? '取消中...' : '取消订单' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { getMyOrders, cancelOrder } from '../api/index.js'
+import { ref } from 'vue'
+import { getOrderByCode, cancelOrder } from '../api/index.js'
 
-const list = ref([])
-const loading = ref(false)
-const error = ref('')
-const cancellingId = ref(null)
+const queryCode = ref('')
+const order = ref(null)
+const querying = ref(false)
+const queryErr = ref('')
+const cancelling = ref(false)
 
 function statusClass(status) {
   const map = {
@@ -103,33 +123,36 @@ function formatPrice(price) {
   return Number(price).toLocaleString('zh-CN')
 }
 
-async function fetchData() {
-  loading.value = true
-  error.value = ''
+async function handleQuery() {
+  const code = queryCode.value.trim()
+  if (!code) {
+    queryErr.value = '请输入订单编号'
+    return
+  }
+
+  querying.value = true
+  queryErr.value = ''
+  order.value = null
+
   try {
-    list.value = await getMyOrders()
+    order.value = await getOrderByCode(code)
   } catch (e) {
-    error.value = e.message || '获取订单列表失败'
+    queryErr.value = e.message || '查询失败，请检查编号是否正确'
   } finally {
-    loading.value = false
+    querying.value = false
   }
 }
 
 async function handleCancel(item) {
-  if (!confirm(`确定要取消订单 #${item.id} 吗？`)) return
-  cancellingId.value = item.id
+  if (!confirm(`确定要取消订单 #${item.code || item.id} 吗？`)) return
+  cancelling.value = true
   try {
     await cancelOrder(item.id)
-    // 将本地状态改为已取消
-    item.status = 'cancelled'
+    order.value.status = 'cancelled'
   } catch (e) {
     alert('取消失败: ' + (e.message || '请重试'))
   } finally {
-    cancellingId.value = null
+    cancelling.value = false
   }
 }
-
-onMounted(() => {
-  fetchData()
-})
 </script>

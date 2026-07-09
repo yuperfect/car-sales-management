@@ -9,10 +9,10 @@
         <router-link to="/" :class="{ active: $route.path === '/' }">
           <span class="nav-icon">🚗</span> 在售车辆
         </router-link>
-        <router-link to="/test-drive/new" :class="{ active: $route.path === '/test-drive/new' }">
-          <span class="nav-icon">📅</span> 提交试驾
+        <router-link to="/appointment/new" :class="{ active: $route.path === '/appointment/new' }">
+          <span class="nav-icon">📅</span> 提交预约
         </router-link>
-        <router-link to="/my/test-drives" :class="{ active: $route.path === '/my/test-drives' }">
+        <router-link to="/my/appointments" :class="{ active: $route.path === '/my/appointments' }">
           <span class="nav-icon">📋</span> 我的预约
         </router-link>
         <router-link to="/orders/new" :class="{ active: $route.path === '/orders/new' }">
@@ -21,8 +21,8 @@
         <router-link to="/my/orders" :class="{ active: $route.path === '/my/orders' }">
           <span class="nav-icon">📦</span> 我的订单
         </router-link>
-        <router-link to="/my/profile" :class="{ active: $route.path === '/my/profile' }">
-          <span class="nav-icon">👤</span> 个人信息
+        <router-link to="/query" :class="{ active: $route.path === '/query' }">
+          <span class="nav-icon">🔍</span> 查询中心
         </router-link>
       </nav>
     </aside>

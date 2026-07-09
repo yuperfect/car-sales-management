@@ -38,7 +38,7 @@ const navItems = [
   { path: '/admin', label: '首页', icon: '📊' },
   { path: '/admin/cars', label: '车辆管理', icon: '🚙' },
   { path: '/admin/users', label: '客户管理', icon: '👤' },
-  { path: '/admin/test-drives', label: '预约管理', icon: '📅' },
+  { path: '/admin/appointments', label: '预约管理', icon: '📅' },
   { path: '/admin/orders', label: '订单管理', icon: '📋' },
   { path: '/admin/queries', label: '综合查询', icon: '🔍' },
   { path: '/admin/statistics', label: '统计分析', icon: '📈' }

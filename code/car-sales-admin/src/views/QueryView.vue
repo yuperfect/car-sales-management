@@ -6,15 +6,10 @@
       <!-- Query form -->
       <div class="form-input-group" style="margin-bottom: 20px;">
         <div class="form-group">
-          <label class="form-label">车型分类</label>
-          <select v-model="form.category" class="form-select">
-            <option value="">全部</option>
-            <option value="SUV">SUV</option>
-            <option value="轿车">轿车</option>
-            <option value="跑车">跑车</option>
-            <option value="MPV">MPV</option>
-            <option value="新能源">新能源</option>
-            <option value="豪华车">豪华车</option>
+          <label class="form-label">查询模式</label>
+          <select v-model="form.mode" class="form-select">
+            <option value="fuzzy">模糊查询</option>
+            <option value="exact">精确查询</option>
           </select>
         </div>
         <div class="form-group">
@@ -61,7 +56,6 @@
               <th>客户</th>
               <th>品牌</th>
               <th>车型</th>
-              <th>分类</th>
               <th>数量</th>
               <th>总价(元)</th>
               <th>下单时间</th>
@@ -73,13 +67,12 @@
               <td>{{ item.customerName || item.username || '-' }}</td>
               <td>{{ item.brand || '-' }}</td>
               <td>{{ item.model || '-' }}</td>
-              <td><span class="badge badge-blue">{{ item.category || '-' }}</span></td>
               <td>{{ item.quantity ?? '-' }}</td>
-              <td>{{ formatPrice(item.totalPrice) }}</td>
+              <td>{{ formatPrice(item.totalAmount || item.totalPrice) }}</td>
               <td>{{ formatDateTime(item.createdAt) }}</td>
             </tr>
             <tr v-if="results.length === 0">
-              <td colspan="8" style="text-align: center; color: #999;">未找到匹配的记录</td>
+              <td colspan="7" style="text-align: center; color: #999;">未找到匹配的记录</td>
             </tr>
           </tbody>
         </table>
@@ -93,7 +86,7 @@ import { ref, reactive } from 'vue'
 import { querySales } from '../api/index.js'
 
 const form = reactive({
-  category: '',
+  mode: 'fuzzy',
   brand: '',
   minPrice: '',
   maxPrice: '',
@@ -114,7 +107,7 @@ async function doQuery() {
 
   try {
     const params = {}
-    if (form.category) params.category = form.category
+    if (form.mode) params.mode = form.mode
     if (form.brand) params.brand = form.brand
     if (form.minPrice !== '' && form.minPrice !== null) params.minPrice = form.minPrice
     if (form.maxPrice !== '' && form.maxPrice !== null) params.maxPrice = form.maxPrice
@@ -132,7 +125,7 @@ async function doQuery() {
 }
 
 function resetQuery() {
-  form.category = ''
+  form.mode = 'fuzzy'
   form.brand = ''
   form.minPrice = ''
   form.maxPrice = ''

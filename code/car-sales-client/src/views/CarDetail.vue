@@ -18,7 +18,7 @@
       <div class="detail-info card-body">
         <h1>{{ car.brand }} {{ car.model }}</h1>
         <div class="detail-subtitle">
-          {{ translateCategory(car.category) }} · {{ car.color }} · {{ car.year }}年款
+          {{ car.displacement }} · {{ car.transmission }} · {{ car.color }}
         </div>
 
         <div class="detail-specs">
@@ -31,16 +31,20 @@
             <div class="spec-value">{{ car.model }}</div>
           </div>
           <div class="spec-item">
-            <div class="spec-label">分类</div>
-            <div class="spec-value">{{ translateCategory(car.category) }}</div>
+            <div class="spec-label">排量</div>
+            <div class="spec-value">{{ car.displacement }}</div>
           </div>
           <div class="spec-item">
-            <div class="spec-label">年份</div>
-            <div class="spec-value">{{ car.year }}年</div>
+            <div class="spec-label">变速箱</div>
+            <div class="spec-value">{{ car.transmission }}</div>
           </div>
           <div class="spec-item">
             <div class="spec-label">颜色</div>
             <div class="spec-value">{{ car.color }}</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-label">上架时间</div>
+            <div class="spec-value">{{ car.listedTime }}</div>
           </div>
           <div class="spec-item">
             <div class="spec-label">库存</div>
@@ -56,13 +60,8 @@
           </div>
         </div>
 
-        <div class="detail-description" v-if="car.description">
-          <h3>车辆描述</h3>
-          <p>{{ car.description }}</p>
-        </div>
-
         <div class="detail-actions">
-          <button class="btn btn-primary btn-lg" @click="goTestDrive">
+          <button class="btn btn-primary btn-lg" @click="goAppointment">
             📅 预约试驾
           </button>
           <button class="btn btn-success btn-lg" @click="goOrder">
@@ -86,18 +85,13 @@ const car = ref(null)
 const loading = ref(false)
 const error = ref('')
 
-function translateCategory(cat) {
-  const map = { 'SUV': 'SUV', '轿车': '轿车', '新能源': '新能源', '跑车': '跑车' }
-  return map[cat] || cat
-}
-
 function formatPrice(price) {
   if (!price) return '0'
   return Number(price).toLocaleString('zh-CN')
 }
 
-function goTestDrive() {
-  router.push(`/test-drive/new?carId=${route.params.id}`)
+function goAppointment() {
+  router.push(`/appointment/new?carId=${route.params.id}`)
 }
 
 function goOrder() {

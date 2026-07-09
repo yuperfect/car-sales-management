@@ -19,20 +19,12 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">分类 <span style="color: #ff4d4f;">*</span></label>
-            <select v-model="form.category" class="form-select" required>
-              <option value="">请选择分类</option>
-              <option value="SUV">SUV</option>
-              <option value="轿车">轿车</option>
-              <option value="跑车">跑车</option>
-              <option value="MPV">MPV</option>
-              <option value="新能源">新能源</option>
-              <option value="豪华车">豪华车</option>
-            </select>
+            <label class="form-label">排量 <span style="color: #ff4d4f;">*</span></label>
+            <input v-model="form.displacement" class="form-input" placeholder="如：2.0L" required />
           </div>
           <div class="form-group">
-            <label class="form-label">年份 <span style="color: #ff4d4f;">*</span></label>
-            <input v-model.number="form.year" class="form-input" type="number" placeholder="如：2024" required />
+            <label class="form-label">变速箱 <span style="color: #ff4d4f;">*</span></label>
+            <input v-model="form.transmission" class="form-input" placeholder="如：CVT无级变速" required />
           </div>
         </div>
 
@@ -55,15 +47,10 @@
           <div class="form-group">
             <label class="form-label">状态</label>
             <select v-model="form.status" class="form-select">
-              <option value="上架">上架</option>
-              <option value="下架">下架</option>
+              <option value="on_sale">在售</option>
+              <option value="sold_out">停售</option>
             </select>
           </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">描述</label>
-          <textarea v-model="form.description" class="form-textarea" placeholder="车辆描述信息..."></textarea>
         </div>
 
         <div class="form-actions">
@@ -93,13 +80,12 @@ const error = ref('')
 const form = ref({
   brand: '',
   model: '',
-  category: '',
-  year: new Date().getFullYear(),
+  displacement: '',
+  transmission: '',
   color: '',
   price: 0,
   stock: 0,
-  status: '上架',
-  description: ''
+  status: 'on_sale'
 })
 
 onMounted(async () => {
@@ -109,13 +95,12 @@ onMounted(async () => {
       form.value = {
         brand: data.brand || '',
         model: data.model || '',
-        category: data.category || '',
-        year: data.year || new Date().getFullYear(),
+        displacement: data.displacement || '',
+        transmission: data.transmission || '',
         color: data.color || '',
         price: data.price || 0,
         stock: data.stock || 0,
-        status: data.status || '上架',
-        description: data.description || ''
+        status: data.status || 'on_sale'
       }
     } catch (e) {
       error.value = '获取车辆信息失败：' + (e.message || '网络错误')

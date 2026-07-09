@@ -37,11 +37,12 @@
               <th>ID</th>
               <th>品牌</th>
               <th>车型</th>
-              <th>分类</th>
-              <th>年份</th>
+              <th>排量</th>
+              <th>变速箱</th>
               <th>颜色</th>
               <th>价格(元)</th>
               <th>库存</th>
+              <th>上架时间</th>
               <th>状态</th>
               <th>操作</th>
             </tr>
@@ -51,29 +52,36 @@
               <td>{{ car.id }}</td>
               <td>{{ car.brand }}</td>
               <td>{{ car.model }}</td>
-              <td><span class="badge badge-blue">{{ car.category }}</span></td>
-              <td>{{ car.year }}</td>
-              <td>{{ car.color }}</td>
+              <td>{{ car.displacement || '-' }}</td>
+              <td>{{ car.transmission || '-' }}</td>
+              <td>{{ car.color || '-' }}</td>
               <td>{{ formatPrice(car.price) }}</td>
               <td>
                 <span :class="car.stock > 0 ? 'badge badge-green' : 'badge badge-red'">
                   {{ car.stock }}
                 </span>
               </td>
+              <td>{{ formatDate(car.listedTime) }}</td>
               <td>
-                <span :class="car.status === '上架' ? 'badge badge-green' : 'badge badge-gray'">
-                  {{ car.status || '上架' }}
+                <span :class="car.status === 'on_sale' ? 'badge badge-green' : 'badge badge-gray'">
+                  {{ car.status === 'on_sale' ? '在售' : '停售' }}
                 </span>
               </td>
               <td>
                 <router-link :to="`/admin/cars/${car.id}/edit`" class="btn btn-sm btn-primary">
                   编辑
                 </router-link>
-                <button class="btn btn-sm btn-danger" @click="handleDelete(car.id)">删除</button>
+                <button
+                  v-if="car.status === 'on_sale'"
+                  class="btn btn-sm btn-danger"
+                  @click="handleStopSell(car.id)"
+                >
+                  停售
+                </button>
               </td>
             </tr>
             <tr v-if="cars.length === 0">
-              <td colspan="10" style="text-align: center; color: #999;">暂无数据</td>
+              <td colspan="11" style="text-align: center; color: #999;">暂无数据</td>
             </tr>
           </tbody>
         </table>
@@ -84,7 +92,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchCars, deleteCar } from '../api/index.js'
+import { fetchCars, updateCar } from '../api/index.js'
 
 const cars = ref([])
 const loading = ref(false)
@@ -116,18 +124,25 @@ function resetSearch() {
   loadCars()
 }
 
-async function handleDelete(id) {
-  if (!confirm('确定要删除该车辆吗？')) return
+async function handleStopSell(id) {
+  if (!confirm('确定要停售该车辆吗？')) return
   try {
-    await deleteCar(id)
-    cars.value = cars.value.filter(c => c.id !== id)
+    await updateCar(id, { status: 'sold_out' })
+    const car = cars.value.find(c => c.id === id)
+    if (car) car.status = 'sold_out'
   } catch (e) {
-    alert('删除失败：' + (e.message || '网络错误'))
+    alert('操作失败：' + (e.message || '网络错误'))
   }
 }
 
 function formatPrice(price) {
   if (price == null) return '-'
   return '¥' + Number(price).toLocaleString()
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '-'
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('zh-CN')
 }
 </script>

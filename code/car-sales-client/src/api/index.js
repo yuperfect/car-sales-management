@@ -8,9 +8,6 @@ const request = axios.create({
   }
 })
 
-// 默认客户 ID
-const DEFAULT_CUSTOMER_ID = 2
-
 // 响应拦截器：提取 data
 request.interceptors.response.use(
   (response) => {
@@ -28,11 +25,14 @@ request.interceptors.response.use(
 
 // ============ 车辆相关 ============
 
-/** 获取在售车辆列表，可按分类筛选 */
-export function getCars(category) {
+/** 获取在售车辆列表，可按品牌/车型筛选 */
+export function getCars(brand, model) {
   const params = {}
-  if (category && category !== 'all') {
-    params.category = category
+  if (brand && brand !== '') {
+    params.brand = brand
+  }
+  if (model && model !== '') {
+    params.model = model
   }
   return request.get('/cars', { params })
 }
@@ -42,29 +42,22 @@ export function getCarById(id) {
   return request.get(`/cars/${id}`)
 }
 
-/** 获取车辆分类列表 */
-export function getCategories() {
-  return request.get('/cars/categories')
-}
+// ============ 预约（原试驾预约） ============
 
-// ============ 试驾预约 ============
-
-/** 提交试驾预约 */
-export function createTestDrive(data) {
-  return request.post('/test-drives', {
-    customerId: DEFAULT_CUSTOMER_ID,
+/** 提交预约 */
+export function createAppointment(data) {
+  return request.post('/appointments', {
+    customerName: data.customerName,
+    customerPhone: data.customerPhone,
     carId: data.carId,
-    driveDate: data.driveDate,
-    driveTime: data.driveTime,
-    ...data
+    appointmentTime: data.appointmentTime,
+    remark: data.remark || ''
   })
 }
 
-/** 获取我的试驾预约 */
-export function getMyTestDrives() {
-  return request.get('/test-drives', {
-    params: { customerId: DEFAULT_CUSTOMER_ID }
-  })
+/** 按编号查询预约 */
+export function getAppointmentByCode(code) {
+  return request.get(`/appointments/${code}`)
 }
 
 // ============ 订单相关 ============
@@ -72,35 +65,21 @@ export function getMyTestDrives() {
 /** 提交订单 */
 export function createOrder(data) {
   return request.post('/purchase-orders', {
-    customerId: DEFAULT_CUSTOMER_ID,
+    customerName: data.customerName,
+    customerPhone: data.customerPhone,
     carId: data.carId,
-    quantity: data.quantity,
-    ...data
+    quantity: data.quantity
   })
 }
 
-/** 获取我的订单 */
-export function getMyOrders() {
-  return request.get('/purchase-orders', {
-    params: { customerId: DEFAULT_CUSTOMER_ID }
-  })
+/** 按编号查询订单 */
+export function getOrderByCode(code) {
+  return request.get(`/purchase-orders/${code}`)
 }
 
 /** 取消订单 */
 export function cancelOrder(id) {
   return request.delete(`/purchase-orders/${id}`)
-}
-
-// ============ 用户相关 ============
-
-/** 获取用户信息 */
-export function getUserById(id) {
-  return request.get(`/users/${id || DEFAULT_CUSTOMER_ID}`)
-}
-
-/** 更新用户信息 */
-export function updateUser(id, data) {
-  return request.put(`/users/${id}`, data)
 }
 
 export default request

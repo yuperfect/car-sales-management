@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="card">
-      <div class="card-header">订单管理</div>
+      <div class="card-header">预约管理</div>
 
       <!-- Tabs -->
       <div class="tabs">
@@ -28,11 +28,9 @@
               <th>客户名</th>
               <th>品牌</th>
               <th>车型</th>
-              <th>数量</th>
-              <th>单价(元)</th>
-              <th>总价(元)</th>
+              <th>预约时间</th>
+              <th>创建时间</th>
               <th>状态</th>
-              <th>下单时间</th>
               <th v-if="activeTab === 'pending'">操作</th>
               <th v-else>处理人</th>
             </tr>
@@ -43,20 +41,18 @@
               <td>{{ item.customerName || item.username || '-' }}</td>
               <td>{{ item.brand || '-' }}</td>
               <td>{{ item.model || '-' }}</td>
-              <td>{{ item.quantity ?? '-' }}</td>
-              <td>{{ formatPrice(item.unitPrice) }}</td>
-              <td>{{ formatPrice(item.totalAmount || item.totalPrice) }}</td>
+              <td>{{ formatDateTime(item.appointmentTime) }}</td>
+              <td>{{ formatDateTime(item.createTime) }}</td>
               <td>
                 <span v-if="item.status === 'pending'" class="badge badge-orange">待确认</span>
                 <span v-else-if="item.status === 'confirmed' || item.status === '已确认'" class="badge badge-green">已确认</span>
                 <span v-else class="badge badge-gray">{{ item.status }}</span>
               </td>
-              <td>{{ formatDateTime(item.createdAt) }}</td>
               <td v-if="activeTab === 'pending'">
                 <button class="btn btn-sm btn-success" :disabled="processingId === item.id" @click="openConfirmDialog(item.id)">
                   {{ processingId === item.id ? '确认中...' : '确认' }}
                 </button>
-                <button class="btn btn-sm btn-danger" :disabled="processingId === item.id" @click="handleCancel(item.id)">
+                <button class="btn btn-sm btn-danger" :disabled="processingId === item.id" @click="handleReject(item.id)">
                   {{ processingId === item.id ? '拒绝中...' : '拒绝' }}
                 </button>
               </td>
@@ -68,8 +64,8 @@
               </td>
             </tr>
             <tr v-if="list.length === 0">
-              <td :colspan="activeTab === 'pending' ? 11 : 11" style="text-align: center; color: #999;">
-                暂无{{ activeTab === 'pending' ? '待确认' : '' }}订单
+              <td :colspan="activeTab === 'pending' ? 8 : 8" style="text-align: center; color: #999;">
+                暂无{{ activeTab === 'pending' ? '待确认' : '' }}预约
               </td>
             </tr>
           </tbody>
@@ -80,7 +76,7 @@
     <!-- Confirm Dialog -->
     <div v-if="showConfirmDialog" class="modal-overlay" @click.self="closeConfirmDialog">
       <div class="modal-content">
-        <div class="modal-header">确认订单</div>
+        <div class="modal-header">确认预约</div>
         <div class="modal-body">
           <label class="form-label">处理人 <span style="color: #ff4d4f;">*</span></label>
           <input v-model="handlerName" class="form-input" placeholder="请输入处理人姓名" />
@@ -98,7 +94,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchOrders, confirmOrder, cancelOrder } from '../api/index.js'
+import { fetchAppointments, confirmAppointment, rejectAppointment } from '../api/index.js'
 
 const list = ref([])
 const loading = ref(false)
@@ -119,9 +115,9 @@ async function loadData() {
   try {
     const params = {}
     if (activeTab.value === 'pending') params.status = 'pending'
-    list.value = await fetchOrders(params)
+    list.value = await fetchAppointments(params)
   } catch (e) {
-    error.value = '获取订单列表失败：' + (e.message || '网络错误')
+    error.value = '获取预约列表失败：' + (e.message || '网络错误')
   } finally {
     loading.value = false
   }
@@ -148,7 +144,7 @@ async function handleConfirm() {
   if (!handlerName.value.trim() || !confirmTargetId.value) return
   processingId.value = confirmTargetId.value
   try {
-    await confirmOrder(confirmTargetId.value, handlerName.value.trim())
+    await confirmAppointment(confirmTargetId.value, handlerName.value.trim())
     list.value = list.value.filter(item => item.id !== confirmTargetId.value)
     closeConfirmDialog()
   } catch (e) {
@@ -158,22 +154,17 @@ async function handleConfirm() {
   }
 }
 
-async function handleCancel(id) {
-  if (!confirm('确定要拒绝该订单吗？')) return
+async function handleReject(id) {
+  if (!confirm('确定要拒绝该预约吗？')) return
   processingId.value = id
   try {
-    await cancelOrder(id)
+    await rejectAppointment(id)
     list.value = list.value.filter(item => item.id !== id)
   } catch (e) {
     alert('拒绝失败：' + (e.message || '网络错误'))
   } finally {
     processingId.value = null
   }
-}
-
-function formatPrice(price) {
-  if (price == null) return '-'
-  return '¥' + Number(price).toLocaleString()
 }
 
 function formatDateTime(dateStr) {
