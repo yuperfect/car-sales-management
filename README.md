@@ -1,10 +1,5 @@
 # 汽车销售管理系统
 
-> 西安建筑科技大学 计算机2304 课程设计  
-> 指导老师：常金勇
-
----
-
 ## 目录
 
 - [项目概述](#项目概述)
@@ -338,6 +333,7 @@ net start MySQL80
 # 如果提示服务名无效
 # 先找到实际的服务名：
 Get-Service *mysql*
+
 ```
 
 ### Q: 端口被占用
@@ -388,16 +384,3 @@ node test-all.mjs
 
 测试覆盖：API 接口 10 项 + 客户端功能 8 项 + 管理端功能 10 项 = **39 项测试**。
 
----
-
-## Git 提交记录
-
-```bash
-61cfba1 fix: 统计分析页面无数据问题+ECharts渲染修复
-25117b3 fix: 新增CustomerController解决管理端首页统计数据404
-ebe2e8f fix: 修复前端字段名不匹配
-bf971ec feat: 管理端前端重构
-498deb3 feat: 客户端前端重构
-ac81cdd feat: 后端全部重构(Entity/Repo/Service/Controller)
-a2a4bdb feat: 数据库schema+data(4表+3触发器)
-```
