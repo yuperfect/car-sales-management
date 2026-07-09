@@ -33,13 +33,16 @@ public class CarService {
 
     public Car update(Integer id, Car updated) {
         return carRepository.findById(id).map(car -> {
-            car.setBrand(updated.getBrand());
-            car.setModel(updated.getModel());
-            car.setDisplacement(updated.getDisplacement());
-            car.setTransmission(updated.getTransmission());
-            car.setColor(updated.getColor());
-            car.setPrice(updated.getPrice());
-            car.setStock(updated.getStock());
+            // 仅更新前端传入的非空字段（支持部分更新）
+            if (updated.getBrand() != null) car.setBrand(updated.getBrand());
+            if (updated.getModel() != null) car.setModel(updated.getModel());
+            if (updated.getDisplacement() != null) car.setDisplacement(updated.getDisplacement());
+            if (updated.getTransmission() != null) car.setTransmission(updated.getTransmission());
+            if (updated.getColor() != null) car.setColor(updated.getColor());
+            if (updated.getPrice() != null) car.setPrice(updated.getPrice());
+            if (updated.getStock() != null) car.setStock(updated.getStock());
+            if (updated.getStatus() != null) car.setStatus(updated.getStatus());
+            if (updated.getListedTime() != null) car.setListedTime(updated.getListedTime());
             return carRepository.save(car);
         }).orElseThrow(() -> new RuntimeException("Car not found with id: " + id));
     }

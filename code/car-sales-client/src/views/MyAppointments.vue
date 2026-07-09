@@ -62,6 +62,15 @@
             <div class="spec-value">{{ appointment.remark }}</div>
           </div>
         </div>
+
+        <!-- 取消预约按钮（仅待确认状态可取消） -->
+        <div style="margin-top: 20px; text-align: right;" v-if="appointment.status === 'pending'">
+          <button class="btn btn-danger" @click="handleCancel" :disabled="cancelling">
+            {{ cancelling ? '取消中...' : '取消预约' }}
+          </button>
+        </div>
+        <div v-if="cancelErr" class="alert alert-error" style="margin-top: 12px;">{{ cancelErr }}</div>
+        <div v-if="cancelSuccess" class="alert alert-success">{{ cancelSuccess }}</div>
       </div>
     </div>
   </div>
@@ -69,12 +78,15 @@
 
 <script setup>
 import { ref } from 'vue'
-import { getAppointmentByCode } from '../api/index.js'
+import { getAppointmentByCode, cancelAppointment } from '../api/index.js'
 
 const queryCode = ref('')
 const appointment = ref(null)
 const querying = ref(false)
 const queryErr = ref('')
+const cancelling = ref(false)
+const cancelErr = ref('')
+const cancelSuccess = ref('')
 
 function statusClass(status) {
   const map = {
@@ -94,6 +106,22 @@ function statusText(status) {
   return map[status] || status
 }
 
+async function handleCancel() {
+  if (!confirm('确定要取消该预约吗？')) return
+  cancelling.value = true
+  cancelErr.value = ''
+  cancelSuccess.value = ''
+  try {
+    await cancelAppointment(appointment.value.appointmentId)
+    cancelSuccess.value = '预约已取消成功'
+    appointment.value.status = 'cancelled'
+  } catch (e) {
+    cancelErr.value = e.message || '取消失败，请重试'
+  } finally {
+    cancelling.value = false
+  }
+}
+
 async function handleQuery() {
   const code = queryCode.value.trim()
   if (!code) {
@@ -104,6 +132,8 @@ async function handleQuery() {
   querying.value = true
   queryErr.value = ''
   appointment.value = null
+  cancelErr.value = ''
+  cancelSuccess.value = ''
 
   try {
     appointment.value = await getAppointmentByCode(code)

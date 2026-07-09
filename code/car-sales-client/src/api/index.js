@@ -79,7 +79,12 @@ export function getOrderByCode(code) {
 
 /** 取消订单 */
 export function cancelOrder(id) {
-  return request.delete(`/purchase-orders/${id}`)
+  return request.put(`/purchase-orders/${id}/cancel`)
+}
+
+/** 取消预约 */
+export function cancelAppointment(id) {
+  return request.put(`/appointments/${id}/cancel`)
 }
 
 export default request

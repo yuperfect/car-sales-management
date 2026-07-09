@@ -67,4 +67,13 @@ public class AppointmentController {
             return ApiResponse.error(e.getMessage());
         }
     }
+
+    @PutMapping("/{id}/reject")
+    public ApiResponse<Appointment> reject(@PathVariable Integer id) {
+        try {
+            return ApiResponse.success(appointmentService.cancel(id));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
 }
