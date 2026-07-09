@@ -25,17 +25,17 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, In
     List<Object[]> countSalesByCarIdGrouped();
 
     // 销售额占比统计：按车型分组计算总销售额
-    @Query("SELECT o.carId, SUM(o.totalPrice) as totalRevenue FROM PurchaseOrder o " +
+    @Query("SELECT o.carId, SUM(o.totalAmount) as totalRevenue FROM PurchaseOrder o " +
            "WHERE o.status = 'confirmed' GROUP BY o.carId ORDER BY totalRevenue DESC")
     List<Object[]> sumRevenueByCarIdGrouped();
 
     @Query("SELECT o FROM PurchaseOrder o WHERE " +
            "(:carType IS NULL OR o.car.model LIKE %:carType% OR o.car.brand LIKE %:carType%) " +
-           "AND (:minPrice IS NULL OR o.totalPrice >= :minPrice) " +
-           "AND (:maxPrice IS NULL OR o.totalPrice <= :maxPrice) " +
+           "AND (:minPrice IS NULL OR o.totalAmount >= :minPrice) " +
+           "AND (:maxPrice IS NULL OR o.totalAmount <= :maxPrice) " +
            "AND (:customerName IS NULL OR o.customer.realName LIKE %:customerName%) " +
-           "AND (:startDate IS NULL OR o.createdAt >= :startDate) " +
-           "AND (:endDate IS NULL OR o.createdAt <= :endDate)")
+           "AND (:startDate IS NULL OR o.orderTime >= :startDate) " +
+           "AND (:endDate IS NULL OR o.orderTime <= :endDate)")
     List<PurchaseOrder> findByFilters(@Param("carType") String carType,
                                        @Param("minPrice") BigDecimal minPrice,
                                        @Param("maxPrice") BigDecimal maxPrice,

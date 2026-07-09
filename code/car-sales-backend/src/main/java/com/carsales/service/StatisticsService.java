@@ -3,7 +3,6 @@ package com.carsales.service;
 import com.carsales.entity.Car;
 import com.carsales.entity.PurchaseOrder;
 import com.carsales.repository.CarRepository;
-import com.carsales.repository.TestDriveRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,23 +13,23 @@ import java.util.stream.Collectors;
 @Service
 public class StatisticsService {
 
-    private final TestDriveService testDriveService;
+    private final AppointmentService appointmentService;
     private final OrderService orderService;
     private final CarRepository carRepository;
 
-    public StatisticsService(TestDriveService testDriveService,
+    public StatisticsService(AppointmentService appointmentService,
                              OrderService orderService,
                              CarRepository carRepository) {
-        this.testDriveService = testDriveService;
+        this.appointmentService = appointmentService;
         this.orderService = orderService;
         this.carRepository = carRepository;
     }
 
     /**
-     * 试驾热点统计：按车型分组统计预约次数
+     * 试驾预约热点统计：按车型分组统计预约次数
      */
-    public List<Map<String, Object>> getTestDriveHotStats() {
-        List<Object[]> raw = testDriveService.getTestDriveHotStats();
+    public List<Map<String, Object>> getAppointmentHotStats() {
+        List<Object[]> raw = appointmentService.getAppointmentHotStats();
         List<Map<String, Object>> result = new ArrayList<>();
         for (Object[] row : raw) {
             Integer carId = (Integer) row[0];
@@ -76,7 +75,7 @@ public class StatisticsService {
         List<Map<String, Object>> result = new ArrayList<>();
         for (Object[] row : raw) {
             Integer carId = (Integer) row[0];
-            java.math.BigDecimal totalRevenue = (java.math.BigDecimal) row[1];
+            BigDecimal totalRevenue = (BigDecimal) row[1];
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("carId", carId);
             item.put("totalRevenue", totalRevenue);
@@ -87,6 +86,40 @@ public class StatisticsService {
             result.add(item);
         }
         return result;
+    }
+
+    /**
+     * 热销价格区间统计
+     */
+    public List<Map<String, Object>> getPriceRangeStats() {
+        List<PurchaseOrder> confirmedOrders = orderService.findByStatus(com.carsales.enums.OrderStatus.confirmed);
+        Map<String, Object> stats = new LinkedHashMap<>();
+
+        int range1 = 0, range2 = 0, range3 = 0, range4 = 0, range5 = 0;
+
+        for (PurchaseOrder order : confirmedOrders) {
+            BigDecimal unitPrice = order.getUnitPrice();
+            if (unitPrice == null) continue;
+            if (unitPrice.compareTo(new BigDecimal("100000")) < 0) {
+                range1 += order.getQuantity();
+            } else if (unitPrice.compareTo(new BigDecimal("200000")) < 0) {
+                range2 += order.getQuantity();
+            } else if (unitPrice.compareTo(new BigDecimal("300000")) < 0) {
+                range3 += order.getQuantity();
+            } else if (unitPrice.compareTo(new BigDecimal("500000")) < 0) {
+                range4 += order.getQuantity();
+            } else {
+                range5 += order.getQuantity();
+            }
+        }
+
+        stats.put("lt_10万", range1);
+        stats.put("10万_20万", range2);
+        stats.put("20万_30万", range3);
+        stats.put("30万_50万", range4);
+        stats.put("gte_50万", range5);
+
+        return Collections.singletonList(stats);
     }
 
     /**
@@ -111,13 +144,15 @@ public class StatisticsService {
             if (order.getCar() != null) {
                 item.put("brand", order.getCar().getBrand());
                 item.put("model", order.getCar().getModel());
-                item.put("price", order.getCar().getPrice());
+                item.put("unitPrice", order.getCar().getPrice());
             }
             item.put("quantity", order.getQuantity());
-            item.put("totalPrice", order.getTotalPrice());
+            item.put("unitPrice", order.getUnitPrice());
+            item.put("totalAmount", order.getTotalAmount());
             item.put("status", order.getStatus());
-            item.put("createdAt", order.getCreatedAt());
-            item.put("confirmedAt", order.getConfirmedAt());
+            item.put("orderTime", order.getOrderTime());
+            item.put("handleTime", order.getHandleTime());
+            item.put("handler", order.getHandler());
             return item;
         }).collect(Collectors.toList());
     }

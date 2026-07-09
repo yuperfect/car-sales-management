@@ -33,15 +33,13 @@ public class CarService {
 
     public Car update(Integer id, Car updated) {
         return carRepository.findById(id).map(car -> {
-            car.setCategoryId(updated.getCategoryId());
             car.setBrand(updated.getBrand());
             car.setModel(updated.getModel());
-            car.setYear(updated.getYear());
+            car.setDisplacement(updated.getDisplacement());
+            car.setTransmission(updated.getTransmission());
             car.setColor(updated.getColor());
             car.setPrice(updated.getPrice());
             car.setStock(updated.getStock());
-            car.setDescription(updated.getDescription());
-            car.setImageUrl(updated.getImageUrl());
             return carRepository.save(car);
         }).orElseThrow(() -> new RuntimeException("Car not found with id: " + id));
     }
@@ -54,12 +52,8 @@ public class CarService {
         return carRepository.findByStatus(status);
     }
 
-    public List<Car> findByCategoryId(Integer categoryId) {
-        return carRepository.findByCategoryId(categoryId);
-    }
-
-    public List<Car> findByFilters(Integer categoryId, String brand, BigDecimal minPrice, BigDecimal maxPrice) {
-        return carRepository.findByFilters(categoryId, brand, minPrice, maxPrice);
+    public List<Car> findByFilters(String brand, String model, BigDecimal minPrice, BigDecimal maxPrice) {
+        return carRepository.findByFilters(brand, model, minPrice, maxPrice);
     }
 
     @Transactional

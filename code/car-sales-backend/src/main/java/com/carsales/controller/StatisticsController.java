@@ -19,9 +19,9 @@ public class StatisticsController {
         this.statisticsService = statisticsService;
     }
 
-    @GetMapping("/api/statistics/test-drive-hot")
-    public ApiResponse<List<Map<String, Object>>> getTestDriveHotStats() {
-        return ApiResponse.success(statisticsService.getTestDriveHotStats());
+    @GetMapping("/api/statistics/appointment-hot")
+    public ApiResponse<List<Map<String, Object>>> getAppointmentHotStats() {
+        return ApiResponse.success(statisticsService.getAppointmentHotStats());
     }
 
     @GetMapping("/api/statistics/sales-hot")
@@ -32,6 +32,11 @@ public class StatisticsController {
     @GetMapping("/api/statistics/sales-share")
     public ApiResponse<List<Map<String, Object>>> getSalesShareStats() {
         return ApiResponse.success(statisticsService.getSalesShareStats());
+    }
+
+    @GetMapping("/api/statistics/price-range")
+    public ApiResponse<List<Map<String, Object>>> getPriceRangeStats() {
+        return ApiResponse.success(statisticsService.getPriceRangeStats());
     }
 
     @GetMapping("/api/queries/sales")

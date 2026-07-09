@@ -15,20 +15,17 @@ public interface CarRepository extends JpaRepository<Car, Integer> {
 
     List<Car> findByStatus(CarStatus status);
 
-    List<Car> findByCategoryId(Integer categoryId);
-
     List<Car> findByBrandContaining(String brand);
 
     List<Car> findByModelContaining(String model);
 
-    List<Car> findByCategoryIdAndStatus(Integer categoryId, CarStatus status);
-
-    @Query("SELECT c FROM Car c WHERE (:categoryId IS NULL OR c.categoryId = :categoryId) " +
-           "AND (:brand IS NULL OR c.brand LIKE %:brand%) " +
-           "AND (:minPrice IS NULL OR c.price >= :minPrice) " +
-           "AND (:maxPrice IS NULL OR c.price <= :maxPrice)")
-    List<Car> findByFilters(@Param("categoryId") Integer categoryId,
-                            @Param("brand") String brand,
+    @Query("SELECT c FROM Car c WHERE " +
+           "(:brand IS NULL OR c.brand LIKE %:brand%) " +
+           "AND (:model IS NULL OR c.model LIKE %:model%) " +
+            "AND (:minPrice IS NULL OR c.price >= :minPrice) " +
+            "AND (:maxPrice IS NULL OR c.price <= :maxPrice)")
+    List<Car> findByFilters(@Param("brand") String brand,
+                            @Param("model") String model,
                             @Param("minPrice") BigDecimal minPrice,
                             @Param("maxPrice") BigDecimal maxPrice);
 }

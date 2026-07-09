@@ -22,12 +22,12 @@ public class CarController {
 
     @GetMapping
     public ApiResponse<List<Car>> findAll(
-            @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String model,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice) {
-        if (categoryId != null || (brand != null && !brand.isBlank()) || minPrice != null || maxPrice != null) {
-            return ApiResponse.success(carService.findByFilters(categoryId, brand, minPrice, maxPrice));
+        if ((brand != null && !brand.isBlank()) || (model != null && !model.isBlank()) || minPrice != null || maxPrice != null) {
+            return ApiResponse.success(carService.findByFilters(brand, model, minPrice, maxPrice));
         }
         return ApiResponse.success(carService.findAll());
     }

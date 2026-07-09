@@ -1,26 +1,24 @@
 package com.carsales.entity;
 
-import com.carsales.enums.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "`order`")
-public class PurchaseOrder {
+@Table(name = "appointment")
+public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
-    private Integer orderId;
+    @Column(name = "appointment_id")
+    private Integer appointmentId;
 
     @Column(name = "customer_id", nullable = false, insertable = false, updatable = false)
     private Integer customerId;
@@ -38,33 +36,26 @@ public class PurchaseOrder {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Car car;
 
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity = 1;
+    @Column(name = "appointment_time", nullable = false)
+    private LocalDateTime appointmentTime;
 
-    @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
-    private BigDecimal unitPrice;
-
-    @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
-    private BigDecimal totalAmount;
-
-    @Column(name = "order_time", nullable = false, updatable = false)
-    private LocalDateTime orderTime;
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 10)
-    private OrderStatus status = OrderStatus.pending;
+    private String status = "pending";
+
+    @Column(name = "create_time", nullable = false, updatable = false)
+    private LocalDateTime createTime;
 
     @Column(name = "handle_time")
     private LocalDateTime handleTime;
 
-    @Column(name = "handler", length = 50)
-    private String handler;
+    @Column(name = "remark", length = 500)
+    private String remark;
 
     @PrePersist
     protected void onCreate() {
-        this.orderTime = LocalDateTime.now();
+        this.createTime = LocalDateTime.now();
         if (this.status == null) {
-            this.status = OrderStatus.pending;
+            this.status = "pending";
         }
     }
 }

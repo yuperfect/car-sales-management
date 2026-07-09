@@ -17,14 +17,13 @@ import java.util.List;
  * 用于从 .xlsx 文件批量导入车辆数据
  *
  * Excel 列顺序：
- * 0 - 分类ID (category_id)
- * 1 - 品牌 (brand)
- * 2 - 车型名称 (model)
- * 3 - 出厂年份 (year) - 可选
+ * 0 - 品牌 (brand)
+ * 1 - 车型名称 (model)
+ * 2 - 排量 (displacement) - 可选
+ * 3 - 变速箱 (transmission) - 可选
  * 4 - 颜色 (color) - 可选
  * 5 - 售价 (price)
  * 6 - 库存 (stock) - 可选，默认0
- * 7 - 车辆描述 (description) - 可选
  */
 public class ExcelImportUtil {
 
@@ -54,23 +53,17 @@ public class ExcelImportUtil {
 
                 Car car = new Car();
 
-                // 分类ID
-                car.setCategoryId((int) getNumericCellValue(row.getCell(0)));
-
                 // 品牌
-                car.setBrand(getStringCellValue(row.getCell(1)));
+                car.setBrand(getStringCellValue(row.getCell(0)));
 
                 // 车型名称
-                car.setModel(getStringCellValue(row.getCell(2)));
+                car.setModel(getStringCellValue(row.getCell(1)));
 
-                // 出厂年份（可选）
-                Cell yearCell = row.getCell(3);
-                if (yearCell != null) {
-                    double yearVal = getNumericCellValue(yearCell);
-                    if (yearVal > 0) {
-                        car.setYear((int) yearVal);
-                    }
-                }
+                // 排量（可选）
+                car.setDisplacement(getStringCellValue(row.getCell(2)));
+
+                // 变速箱（可选）
+                car.setTransmission(getStringCellValue(row.getCell(3)));
 
                 // 颜色（可选）
                 car.setColor(getStringCellValue(row.getCell(4)));
@@ -85,9 +78,6 @@ public class ExcelImportUtil {
                 } else {
                     car.setStock(0);
                 }
-
-                // 车辆描述（可选）
-                car.setDescription(getStringCellValue(row.getCell(7)));
 
                 // 默认在售状态
                 car.setStatus(CarStatus.on_sale);

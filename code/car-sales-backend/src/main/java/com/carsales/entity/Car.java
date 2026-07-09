@@ -1,7 +1,6 @@
 package com.carsales.entity;
 
 import com.carsales.enums.CarStatus;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,48 +21,37 @@ public class Car {
     @Column(name = "car_id")
     private Integer carId;
 
-    @Column(name = "category_id", nullable = false)
-    private Integer categoryId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", insertable = false, updatable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    private Category category;
-
     @Column(name = "brand", nullable = false, length = 50)
     private String brand;
 
-    @Column(name = "model", nullable = false, length = 100)
+    @Column(name = "model", nullable = false, length = 50)
     private String model;
 
-    @Column(name = "year")
-    private Integer year;
+    @Column(name = "displacement", length = 20)
+    private String displacement;
+
+    @Column(name = "transmission", length = 20)
+    private String transmission;
 
     @Column(name = "color", length = 30)
     private String color;
 
-    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    @Column(name = "price", nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
     @Column(name = "stock", nullable = false)
     private Integer stock = 0;
 
+    @Column(name = "listed_time", nullable = false, updatable = false)
+    private LocalDateTime listedTime;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, columnDefinition = "ENUM('on_sale','sold_out') DEFAULT 'on_sale'")
+    @Column(name = "status", nullable = false, length = 10)
     private CarStatus status = CarStatus.on_sale;
-
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
-
-    @Column(name = "image_url", length = 200)
-    private String imageUrl;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.listedTime = LocalDateTime.now();
         if (this.stock == null) {
             this.stock = 0;
         }
