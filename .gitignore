@@ -30,3 +30,7 @@ logs/
 # Env
 .env
 .env.local
+
+# Launcher build artifacts (pdb only - exes are tracked)
+*.pdb
+createdump.exe
