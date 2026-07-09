@@ -1,17 +1,10 @@
-<#
-╔══════════════════════════════════════════════════════════════╗
-║      汽车销售管理系统 — 一键启动脚本                        ║
-║      启动顺序: MySQL → 后端 → 客户端 → 管理端              ║
-╚══════════════════════════════════════════════════════════════╝
-#>
-
+# Car Sales Management System - Start All Services
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $BackendPath = "$ProjectRoot\code\car-sales-backend"
 $ClientPath  = "$ProjectRoot\code\car-sales-client"
 $AdminPath   = "$ProjectRoot\code\car-sales-admin"
-
-$LogFile = "$ProjectRoot\start-log.txt"
-$Stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+$LogFile     = "$ProjectRoot\start-log.txt"
+$Stopwatch   = [System.Diagnostics.Stopwatch]::StartNew()
 
 function Log {
     param([string]$Msg)
@@ -28,99 +21,93 @@ function CheckPort {
 }
 
 function WaitForPort {
-    param([int]$Port, [int]$TimeoutSeconds = 30, [string]$ServiceName)
+    param([int]$Port, [int]$TimeoutSeconds = 60, [string]$ServiceName)
     $elapsed = 0
     while ($elapsed -lt $TimeoutSeconds) {
         if (CheckPort -Port $Port) {
-            Log "✅ $ServiceName 已就绪 (端口 $Port)"
+            Log "[OK] $ServiceName ready (port $Port)"
             return $true
         }
         Start-Sleep -Seconds 2
         $elapsed += 2
     }
-    Log "❌ $ServiceName 启动超时 (${TimeoutSeconds}s)"
+    Log "[FAIL] $ServiceName timeout (${TimeoutSeconds}s)"
     return $false
 }
 
-# ========== 清理上次日志 ==========
 Remove-Item -Path $LogFile -ErrorAction SilentlyContinue
+Log "========================================="
+Log "  Car Sales Management System - Starting"
+Log "========================================="
 
-Log "========================================"
-Log "  汽车销售管理系统 — 一键启动"
-Log "========================================"
-
-# ========== Step 0: 检查 MySQL ==========
-Log "正在检查 MySQL 服务..."
+# Step 0: MySQL check
+Log "Checking MySQL..."
 $mysqlService = Get-Service MySQL80 -ErrorAction SilentlyContinue
 if ($mysqlService -and $mysqlService.Status -ne 'Running') {
-    Log "MySQL 未运行，正在启动..."
+    Log "Starting MySQL service..."
     Start-Service MySQL80
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 5
 }
 if (CheckPort -Port 3306) {
-    Log "✅ MySQL 已运行 (端口 3306)"
+    Log "[OK] MySQL running (port 3306)"
 } else {
-    Log "⚠️ 请手动启动 MySQL 服务 (端口 3306)"
-    Write-Host "  运行: Start-Service MySQL80" -ForegroundColor Yellow
+    Log "[WARN] MySQL not found on port 3306"
 }
 
-# ========== Step 1: 编译后端 ==========
-Log "正在编译后端..."
+# Step 1: Build backend
+Log "Building backend..."
 Push-Location $BackendPath
 $env:MAVEN_OPTS = "-Dmaven.multiModuleProjectDirectory=$BackendPath"
-$buildResult = cmd /c "mvnw.cmd package -DskipTests -q 2>&1"
+$buildOutput = cmd /c "mvnw.cmd package -DskipTests -q 2>&1"
 if ($LASTEXITCODE -eq 0) {
-    Log "✅ 后端编译成功"
+    Log "[OK] Backend build success"
 } else {
-    Log "❌ 后端编译失败"
-    Write-Host "  编译错误信息:" -ForegroundColor Red
-    Write-Host "  $buildResult" -ForegroundColor Red
+    Log "[FAIL] Backend build failed"
+    Write-Host "Build error:" -ForegroundColor Red
+    Write-Host $buildOutput -ForegroundColor Red
     Pop-Location
     exit 1
 }
 
-# ========== Step 2: 启动后端 ==========
-Log "正在启动后端服务 (端口 8080)..."
-# 先停掉旧的进程
+# Step 2: Start backend
+Log "Starting backend (port 8080)..."
 Get-Process java -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Seconds 2
 
 $jarFile = "$BackendPath\target\car-sales-backend-1.0.0.jar"
 if (Test-Path $jarFile) {
     Start-Process -FilePath "java" -ArgumentList "-jar",$jarFile -WindowStyle Normal
-    $backendOk = WaitForPort -Port 8080 -ServiceName "后端 API"
+    $backendOk = WaitForPort -Port 8080 -ServiceName "Backend API"
     if (-not $backendOk) {
         Pop-Location
         exit 1
     }
 } else {
-    Log "❌ JAR 包未找到: $jarFile"
+    Log "[FAIL] JAR not found: $jarFile"
     Pop-Location
     exit 1
 }
 Pop-Location
 
-# ========== Step 3: 启动客户端 ==========
-Log "正在启动客户端前端 (端口 3000)..."
+# Step 3: Start client
+Log "Starting client frontend (port 3000)..."
 Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | ForEach-Object {
     Stop-Process -Id $_.OwningProcess -Force
 }
 Start-Process -FilePath "cmd" -ArgumentList "/c","npm","run","dev" -WorkingDirectory $ClientPath
 
-# ========== Step 4: 启动管理端 ==========
-Log "正在启动管理端前端 (端口 5173)..."
+# Step 4: Start admin
+Log "Starting admin frontend (port 5173)..."
 Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | ForEach-Object {
     Stop-Process -Id $_.OwningProcess -Force
 }
 Start-Process -FilePath "cmd" -ArgumentList "/c","npm","run","dev" -WorkingDirectory $AdminPath
 
-# ========== 等待前端就绪 ==========
-Start-Sleep -Seconds 5
-
-$clientOk = $false
-$adminOk = $false
+# Wait for frontends
+Start-Sleep -Seconds 8
+$clientOk = $false; $adminOk = $false
 $elapsed = 0
-while ($elapsed -lt 15) {
+while ($elapsed -lt 20) {
     if (-not $clientOk) { $clientOk = CheckPort -Port 3000 }
     if (-not $adminOk)  { $adminOk  = CheckPort -Port 5173 }
     if ($clientOk -and $adminOk) { break }
@@ -128,54 +115,30 @@ while ($elapsed -lt 15) {
     $elapsed += 2
 }
 
-if ($clientOk) { Log "✅ 客户端前端已就绪 (端口 3000)" }
-else           { Log "⚠️ 客户端前端可能未完全启动" }
+if ($clientOk) { Log "[OK] Client frontend ready (port 3000)" }
+else           { Log "[WARN] Client frontend may not be ready" }
+if ($adminOk)  { Log "[OK] Admin frontend ready (port 5173)" }
+else           { Log "[WARN] Admin frontend may not be ready" }
 
-if ($adminOk)  { Log "✅ 管理端前端已就绪 (端口 5173)" }
-else           { Log "⚠️ 管理端前端可能未完全启动" }
-
-# ========== 验证 API ==========
-Start-Sleep -Seconds 2
+# Verify API
+Start-Sleep -Seconds 3
 try {
     $r = Invoke-WebRequest -Uri "http://localhost:8080/api/cars" -UseBasicParsing -TimeoutSec 5
     $data = $r.Content | ConvertFrom-Json
-    Log "✅ 后端 API 验证: 返回 $($data.data.Count) 辆车"
+    Log "[OK] API verified: $($data.data.Count) cars returned"
 } catch {
-    Log "⚠️ 后端 API 验证超时，请稍后手动检查"
+    Log "[WARN] API verification timed out"
 }
 
-# ========== 完成 ==========
 $Stopwatch.Stop()
-Log "========================================"
-Log "  🚀 全部启动完成! (耗时 $($Stopwatch.Elapsed.TotalSeconds.ToString('0.0')) 秒)"
-Log "========================================"
+Log "========================================="
+Log "  All services started! ($($Stopwatch.Elapsed.TotalSeconds.ToString('0.0'))s)"
+Log "========================================="
 Write-Host ""
-Write-Host "  🌐 客户端: http://localhost:3000"   -ForegroundColor Green
-Write-Host "  🌐 管理端: http://localhost:5173"   -ForegroundColor Green
-Write-Host "  🔗 后端 API: http://localhost:8080" -ForegroundColor Green
+Write-Host "  Client: http://localhost:3000"  -ForegroundColor Green
+Write-Host "  Admin:  http://localhost:5173"  -ForegroundColor Green
+Write-Host "  API:    http://localhost:8080"  -ForegroundColor Green
+Write-Host "  Log:    $LogFile"               -ForegroundColor Gray
 Write-Host ""
-Write-Host "  📋 日志文件: $LogFile" -ForegroundColor Gray
+Write-Host "  Stop: .\stop-all.ps1"           -ForegroundColor Gray
 Write-Host ""
-
-# ========== 测试 API ==========
-Write-Host "  接口快速测试:" -ForegroundColor Yellow
-try {
-    $r = Invoke-WebRequest -Uri "http://localhost:8080/api/cars/1" -UseBasicParsing -TimeoutSec 3
-    Write-Host "  ✅ GET /api/cars/1 — OK" -ForegroundColor Green
-} catch {
-    Write-Host "  ❌ GET /api/cars/1 — 失败" -ForegroundColor Red
-}
-try {
-    $r = Invoke-WebRequest -Uri "http://localhost:3000" -UseBasicParsing -TimeoutSec 3
-    Write-Host "  ✅ 客户端首页可访问" -ForegroundColor Green
-} catch {
-    Write-Host "  ❌ 客户端首页不可访问" -ForegroundColor Red
-}
-try {
-    $r = Invoke-WebRequest -Uri "http://localhost:5173" -UseBasicParsing -TimeoutSec 3
-    Write-Host "  ✅ 管理端首页可访问" -ForegroundColor Green
-} catch {
-    Write-Host "  ❌ 管理端首页不可访问" -ForegroundColor Red
-}
-Write-Host ""
-Write-Host "  ⏹ 关闭所有服务请运行: .\stop-all.ps1" -ForegroundColor Gray
