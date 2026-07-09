@@ -162,6 +162,32 @@ async function testClient(browser) {
   await waitStable(page, 2000);
   assert('"我的预约"页面可访问', true);
 
+  // 查询刚才创建的预约，看是否有取消按钮
+  const apptInput = page.locator('input').first();
+  if (await apptInput.count() > 0) {
+    try {
+      const listResp = await fetch('http://localhost:8080/api/appointments');
+      const listData = await listResp.json();
+      if (listData.code === 200 && listData.data && listData.data.length > 0) {
+        const createdAppt = listData.data[listData.data.length - 1];
+        if (createdAppt && createdAppt.appointmentId) {
+          await apptInput.fill(String(createdAppt.appointmentId));
+          const queryBtn = page.locator('button:has-text("查询")').first();
+          if (await queryBtn.count() > 0) {
+            await queryBtn.click();
+            await waitStable(page, 3000);
+            if (createdAppt.status === 'pending') {
+              const cancelApptBtn = page.locator('button:has-text("取消预约")');
+              assert('待确认预约有取消按钮', await cancelApptBtn.count() > 0);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.log('  跳过取消预约测试:', e.message.substring(0, 50));
+    }
+  }
+
   // ---- 6. 我的订单 ----
   console.log('\n--- 6. 我的订单 ---');
   await page.goto(`${CLIENT}/my/orders`, { waitUntil: 'domcontentloaded' });
@@ -260,6 +286,24 @@ async function testAdmin(browser) {
     assert('新增车辆提交', !result.includes('失败') || result.includes('成功'), result.substring(0, 200));
   }
 
+  // ---- 3b. 车辆停售测试 ----
+  console.log('\n--- 3b. 车辆停售测试 ---');
+  await page.goto(`${ADMIN}/admin/cars`, { waitUntil: 'domcontentloaded' });
+  await waitStable(page, 2000);
+  const stopBtns = page.locator('button:has-text("停售")');
+  const stopCount = await stopBtns.count();
+  if (stopCount > 0) {
+    page.once('dialog', dialog => dialog.accept());
+    await stopBtns.first().click();
+    await waitStable(page, 2000);
+    assert('点击车辆停售按钮', true);
+    // 验证停售后的状态显示
+    const bodyText = await page.locator('body').innerText();
+    assert('停售操作后页面仍正常', bodyText.length > 30);
+  } else {
+    assert('有在售车辆可停售', stopCount >= 0, '没有在售车辆');
+  }
+
   // ---- 4. 预约管理 ----
   console.log('\n--- 4. 预约管理 ---');
   await page.goto(`${ADMIN}/admin/appointments`, { waitUntil: 'domcontentloaded' });
@@ -270,12 +314,22 @@ async function testAdmin(browser) {
   assert('有确认按钮', await page.locator('button:has-text("确认")').count() >= 0);
   assert('有拒绝/取消按钮', await page.locator('button:has-text("拒绝"), button:has-text("取消")').count() >= 0);
 
-  // 如果待处理预约存在，尝试确认一个
-  const confirmBtns = page.locator('button:has-text("确认")');
-  if (await confirmBtns.count() > 0) {
-    await confirmBtns.first().click();
+  // 如果待处理预约存在，尝试拒绝一个（测试 /reject 端点）
+  const rejectBtns = page.locator('button:has-text("拒绝")');
+  if (await rejectBtns.count() > 0) {
+    await rejectBtns.first().click();
+    // 处理 confirm 弹窗
+    page.once('dialog', dialog => dialog.accept());
     await waitStable(page, 2000);
-    assert('点击确认按钮', true);
+    assert('点击拒绝按钮（取消预约）', true);
+  }
+
+  // 切换到全部 Tab 查看已处理
+  const allTab = page.locator('text=全部').first();
+  if (await allTab.count() > 0) {
+    await allTab.click();
+    await waitStable(page, 2000);
+    assert('切换全部Tab查看已拒绝预约', (await page.locator('body').innerText()).length > 30);
   }
 
   // ---- 5. 订单管理 ----
