@@ -120,7 +120,15 @@ async function testClient(browser) {
 
   // ---- 4. 下单购买 ----
   console.log('\n--- 4. 下单购买 ---');
-  await page.goto(`${CLIENT}/orders/new?carId=1`, { waitUntil: 'domcontentloaded' });
+  // 先查询有库存的车辆
+  let orderCarId = 1;
+  try {
+    const carsResp = await fetch('http://localhost:8080/api/cars');
+    const carsData = await carsResp.json();
+    const availCar = carsData.data && carsData.data.find(c => c.stock > 0 && c.status === 'on_sale');
+    if (availCar) orderCarId = availCar.carId;
+  } catch (e) { /* 默认 carId=1 */ }
+  await page.goto(`${CLIENT}/orders/new?carId=${orderCarId}`, { waitUntil: 'domcontentloaded' });
   await waitStable(page, 3000);
 
   const oName = page.locator('input[placeholder*="姓名"]').first();
@@ -427,18 +435,24 @@ async function testAPIs() {
     assert('创建预约API', false, e.message);
   }
 
-  // 测试创建订单
+  // 测试创建订单（自动选择有库存的车辆）
   console.log('\n--- 创建订单 (API) ---');
   try {
+    // 先查库存
+    const carsResp = await fetch('http://localhost:8080/api/cars');
+    const carsData = await carsResp.json();
+    const availCar = carsData.data && carsData.data.find(c => c.stock > 0 && c.status === 'on_sale');
+    const orderCarId = availCar ? availCar.carId : 1;
+    if (availCar) console.log(`    选用有库存车辆: carId=${orderCarId} stock=${availCar.stock}`);
+
     const createResp = await fetch('http://localhost:8080/api/purchase-orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         customerName: 'E2E测试订单',
         customerPhone: '18888888888',
-        carId: 1,
-        quantity: 1,
-        remark: 'E2E订单测试'
+        carId: orderCarId,
+        quantity: 1
       })
     });
     const createData = await createResp.json();
