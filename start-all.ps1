@@ -1,144 +1,39 @@
 # Car Sales Management System - Start All Services
-$ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$BackendPath = "$ProjectRoot\code\car-sales-backend"
-$ClientPath  = "$ProjectRoot\code\car-sales-client"
-$AdminPath   = "$ProjectRoot\code\car-sales-admin"
-$LogFile     = "$ProjectRoot\start-log.txt"
-$Stopwatch   = [System.Diagnostics.Stopwatch]::StartNew()
+# 一键启动：后端 + 管理端 + 客户端，自动打开浏览器
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  汽车销售管理系统 - 一键启动" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
 
-function Log {
-    param([string]$Msg)
-    $time = Get-Date -Format "HH:mm:ss"
-    $line = "[$time] $Msg"
-    Write-Host $line -ForegroundColor Cyan
-    Add-Content -Path $LogFile -Value $line
-}
+$root = "D:\MIS_Design\workspace\car-sales-management"
+$javaHome = "D:\develop\jdk25"
 
-function CheckPort {
-    param([int]$Port)
-    $conn = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
-    return ($null -ne $conn)
-}
+Write-Host "[1/3] 启动后端 (Spring Boot :8080)..." -ForegroundColor Yellow
+$backend = Start-Process -FilePath "cmd" -ArgumentList "/c","$javaHome\bin\java -jar `"$root\code\car-sales-backend\target\car-sales-backend-1.0.0.jar`" --server.port=8080" -WindowStyle Normal -PassThru
+Write-Host "  ✓ 后端正在启动（等待 15 秒）..." -ForegroundColor Green
+Start-Sleep -Seconds 15
 
-function WaitForPort {
-    param([int]$Port, [int]$TimeoutSeconds = 60, [string]$ServiceName)
-    $elapsed = 0
-    while ($elapsed -lt $TimeoutSeconds) {
-        if (CheckPort -Port $Port) {
-            Log "[OK] $ServiceName ready (port $Port)"
-            return $true
-        }
-        Start-Sleep -Seconds 2
-        $elapsed += 2
-    }
-    Log "[FAIL] $ServiceName timeout (${TimeoutSeconds}s)"
-    return $false
-}
+Write-Host "[2/3] 启动管理端 (Vite :5173)..." -ForegroundColor Yellow
+$admin = Start-Process -FilePath "cmd" -ArgumentList "/k cd /d `"$root\code\car-sales-admin`" && npm run dev" -WindowStyle Normal -PassThru
+Write-Host "  ✓ 管理端正在启动..." -ForegroundColor Green
+Start-Sleep -Seconds 5
 
-Remove-Item -Path $LogFile -ErrorAction SilentlyContinue
-Log "========================================="
-Log "  Car Sales Management System - Starting"
-Log "========================================="
-
-# Step 0: MySQL check
-Log "Checking MySQL..."
-$mysqlService = Get-Service MySQL80 -ErrorAction SilentlyContinue
-if ($mysqlService -and $mysqlService.Status -ne 'Running') {
-    Log "Starting MySQL service..."
-    Start-Service MySQL80
-    Start-Sleep -Seconds 5
-}
-if (CheckPort -Port 3306) {
-    Log "[OK] MySQL running (port 3306)"
-} else {
-    Log "[WARN] MySQL not found on port 3306"
-}
-
-# Step 1: Build backend
-Log "Building backend..."
-Push-Location $BackendPath
-$env:MAVEN_OPTS = "-Dmaven.multiModuleProjectDirectory=$BackendPath"
-$buildOutput = cmd /c "mvnw.cmd package -DskipTests -q 2>&1"
-if ($LASTEXITCODE -eq 0) {
-    Log "[OK] Backend build success"
-} else {
-    Log "[FAIL] Backend build failed"
-    Write-Host "Build error:" -ForegroundColor Red
-    Write-Host $buildOutput -ForegroundColor Red
-    Pop-Location
-    exit 1
-}
-
-# Step 2: Start backend
-Log "Starting backend (port 8080)..."
-Get-Process java -ErrorAction SilentlyContinue | Stop-Process -Force
-Start-Sleep -Seconds 2
-
-$jarFile = "$BackendPath\target\car-sales-backend-1.0.0.jar"
-if (Test-Path $jarFile) {
-    Start-Process -FilePath "java" -ArgumentList "-jar",$jarFile -WindowStyle Normal
-    $backendOk = WaitForPort -Port 8080 -ServiceName "Backend API"
-    if (-not $backendOk) {
-        Pop-Location
-        exit 1
-    }
-} else {
-    Log "[FAIL] JAR not found: $jarFile"
-    Pop-Location
-    exit 1
-}
-Pop-Location
-
-# Step 3: Start client
-Log "Starting client frontend (port 3000)..."
-Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | ForEach-Object {
-    Stop-Process -Id $_.OwningProcess -Force
-}
-Start-Process -FilePath "cmd" -ArgumentList "/c","npm","run","dev" -WorkingDirectory $ClientPath
-
-# Step 4: Start admin
-Log "Starting admin frontend (port 5173)..."
-Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | ForEach-Object {
-    Stop-Process -Id $_.OwningProcess -Force
-}
-Start-Process -FilePath "cmd" -ArgumentList "/c","npm","run","dev" -WorkingDirectory $AdminPath
-
-# Wait for frontends
-Start-Sleep -Seconds 8
-$clientOk = $false; $adminOk = $false
-$elapsed = 0
-while ($elapsed -lt 20) {
-    if (-not $clientOk) { $clientOk = CheckPort -Port 3000 }
-    if (-not $adminOk)  { $adminOk  = CheckPort -Port 5173 }
-    if ($clientOk -and $adminOk) { break }
-    Start-Sleep -Seconds 2
-    $elapsed += 2
-}
-
-if ($clientOk) { Log "[OK] Client frontend ready (port 3000)" }
-else           { Log "[WARN] Client frontend may not be ready" }
-if ($adminOk)  { Log "[OK] Admin frontend ready (port 5173)" }
-else           { Log "[WARN] Admin frontend may not be ready" }
-
-# Verify API
+Write-Host "[3/3] 启动客户端 (Vite :3000)..." -ForegroundColor Yellow
+$client = Start-Process -FilePath "cmd" -ArgumentList "/k cd /d `"$root\code\car-sales-client`" && npm run dev" -WindowStyle Normal -PassThru
+Write-Host "  ✓ 客户端正在启动..." -ForegroundColor Green
 Start-Sleep -Seconds 3
-try {
-    $r = Invoke-WebRequest -Uri "http://localhost:8080/api/cars" -UseBasicParsing -TimeoutSec 5
-    $data = $r.Content | ConvertFrom-Json
-    Log "[OK] API verified: $($data.data.Count) cars returned"
-} catch {
-    Log "[WARN] API verification timed out"
-}
 
-$Stopwatch.Stop()
-Log "========================================="
-Log "  All services started! ($($Stopwatch.Elapsed.TotalSeconds.ToString('0.0'))s)"
-Log "========================================="
-Write-Host ""
-Write-Host "  Client: http://localhost:3000"  -ForegroundColor Green
-Write-Host "  Admin:  http://localhost:5173"  -ForegroundColor Green
-Write-Host "  API:    http://localhost:8080"  -ForegroundColor Green
-Write-Host "  Log:    $LogFile"               -ForegroundColor Gray
-Write-Host ""
-Write-Host "  Stop: .\stop-all.ps1"           -ForegroundColor Gray
-Write-Host ""
+Write-Host "`n========================================" -ForegroundColor Cyan
+Write-Host "  正在打开浏览器..." -ForegroundColor Cyan
+Start-Sleep -Seconds 2
+Start-Process "http://localhost:3000"
+Start-Sleep -Seconds 1
+Start-Process "http://localhost:5173/admin"
+
+Write-Host "`n========================================" -ForegroundColor Cyan
+Write-Host "  启动完成! 三个服务已全部启动:" -ForegroundColor Green
+Write-Host "`n  后端:    http://localhost:8080" -ForegroundColor White
+Write-Host "  管理端:  http://localhost:5173/admin" -ForegroundColor White
+Write-Host "  客户端:  http://localhost:3000" -ForegroundColor White
+Write-Host "`n  已自动打开浏览器访问客户端和管理端。" -ForegroundColor Yellow
+Write-Host "  关闭方式: 双击 关闭系统.exe 或 stop.bat" -ForegroundColor Yellow
+Write-Host "========================================" -ForegroundColor Cyan

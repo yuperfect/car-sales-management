@@ -87,4 +87,9 @@ export function cancelAppointment(id) {
   return request.put(`/appointments/${id}/cancel`)
 }
 
+/** 按姓名/电话搜索客户 */
+export function searchCustomers(keyword) {
+  return request.get('/customers', { params: { keyword } })
+}
+
 export default request

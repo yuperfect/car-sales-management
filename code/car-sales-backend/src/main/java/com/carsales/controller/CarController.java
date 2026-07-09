@@ -4,9 +4,15 @@ import com.carsales.dto.ApiResponse;
 import com.carsales.entity.Car;
 import com.carsales.service.CarService;
 import com.carsales.util.ExcelImportUtil;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -68,6 +74,23 @@ public class CarController {
             return ApiResponse.success(null);
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/template")
+    public void downloadTemplate(HttpServletResponse response) throws IOException {
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=\"车辆导入模板.xlsx\"");
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("车辆数据");
+            String[] headers = {"品牌", "车型", "排量", "变速箱", "颜色", "价格", "库存"};
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                headerRow.createCell(i).setCellValue(headers[i]);
+                sheet.autoSizeColumn(i);
+            }
+            workbook.write(response.getOutputStream());
         }
     }
 

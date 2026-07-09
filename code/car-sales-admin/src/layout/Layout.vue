@@ -45,6 +45,10 @@ const navItems = [
 ]
 
 function isActive(path) {
+  // 首页路径 /admin 用精确匹配，其他路径用前缀匹配
+  if (path === '/admin') {
+    return route.path === path
+  }
   return route.path === path || route.path.startsWith(path + '/')
 }
 </script>
