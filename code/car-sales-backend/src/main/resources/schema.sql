@@ -1,6 +1,7 @@
 -- ============================================
 -- 汽车销售管理系统 - 数据库建表脚本
 -- 数据库: car_sales_db
+-- 基于需求分析与设计文档
 -- ============================================
 
 CREATE DATABASE IF NOT EXISTS car_sales_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -8,93 +9,90 @@ CREATE DATABASE IF NOT EXISTS car_sales_db DEFAULT CHARACTER SET utf8mb4 COLLATE
 USE car_sales_db;
 
 -- ============================================
--- 1. 用户表 (user)
+-- 清理旧表
 -- ============================================
 DROP TABLE IF EXISTS purchase_order;
+DROP TABLE IF EXISTS `order`;
+DROP TABLE IF EXISTS appointment;
 DROP TABLE IF EXISTS test_drive;
 DROP TABLE IF EXISTS car;
 DROP TABLE IF EXISTS category;
 DROP TABLE IF EXISTS user;
-
-CREATE TABLE user (
-    user_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '用户ID',
-    username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
-    password VARCHAR(100) NOT NULL COMMENT '密码',
-    role ENUM('customer', 'admin') NOT NULL DEFAULT 'customer' COMMENT '角色：客户/管理员',
-    real_name VARCHAR(50) DEFAULT NULL COMMENT '真实姓名',
-    phone VARCHAR(20) DEFAULT NULL COMMENT '联系电话',
-    email VARCHAR(100) DEFAULT NULL COMMENT '电子邮箱',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+DROP TABLE IF EXISTS customer;
 
 -- ============================================
--- 2. 车型分类表 (category)
+-- 1. 客户表 (customer)
+-- 说明：客户信息由提交预约或订单时自动创建，无登录功能
 -- ============================================
-CREATE TABLE category (
-    category_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '分类ID',
-    category_name VARCHAR(50) NOT NULL UNIQUE COMMENT '分类名称',
-    description VARCHAR(200) DEFAULT NULL COMMENT '分类描述'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车型分类表';
+CREATE TABLE customer (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '客户编号',
+    real_name VARCHAR(50) NOT NULL COMMENT '姓名',
+    phone CHAR(11) NOT NULL COMMENT '联系电话（11位手机号）',
+    first_submit_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '首次提交时间',
+    UNIQUE KEY uk_phone (phone)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户表';
 
 -- ============================================
--- 3. 在售车辆表 (car)
+-- 2. 车辆表 (car)
 -- ============================================
 CREATE TABLE car (
-    car_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '车辆ID',
-    category_id INT NOT NULL COMMENT '分类ID',
+    car_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '车辆编号',
     brand VARCHAR(50) NOT NULL COMMENT '品牌',
-    model VARCHAR(100) NOT NULL COMMENT '车型名称',
-    year YEAR DEFAULT NULL COMMENT '出厂年份',
+    model VARCHAR(50) NOT NULL COMMENT '型号',
+    displacement VARCHAR(20) DEFAULT NULL COMMENT '排量',
+    transmission VARCHAR(20) DEFAULT NULL COMMENT '变速箱',
     color VARCHAR(30) DEFAULT NULL COMMENT '颜色',
-    price DECIMAL(10, 2) NOT NULL COMMENT '售价',
-    stock INT NOT NULL DEFAULT 0 COMMENT '库存数量',
-    status ENUM('on_sale', 'sold_out') NOT NULL DEFAULT 'on_sale' COMMENT '销售状态',
-    description TEXT DEFAULT NULL COMMENT '车辆描述',
-    image_url VARCHAR(200) DEFAULT NULL COMMENT '图片路径',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '录入时间',
-    CONSTRAINT fk_car_category FOREIGN KEY (category_id) REFERENCES category(category_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='在售车辆表';
+    price DECIMAL(12, 2) NOT NULL COMMENT '价格',
+    stock INT NOT NULL DEFAULT 0 COMMENT '库存',
+    listed_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上架时间',
+    status VARCHAR(10) NOT NULL DEFAULT 'on_sale' COMMENT '状态：on_sale在售 / sold_out停售',
+    CONSTRAINT chk_car_price CHECK (price > 0),
+    CONSTRAINT chk_car_stock CHECK (stock >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆表';
 
 -- ============================================
--- 4. 试驾预约表 (test_drive)
+-- 3. 预约表 (appointment)
 -- ============================================
-CREATE TABLE test_drive (
-    drive_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '预约ID',
-    customer_id INT NOT NULL COMMENT '客户ID',
-    car_id INT NOT NULL COMMENT '车辆ID',
-    drive_date DATE NOT NULL COMMENT '预约试驾日期',
-    drive_time TIME NOT NULL COMMENT '预约试驾时间',
-    status ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending' COMMENT '状态：待确认/已确认/已取消',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '申请时间',
-    confirmed_at DATETIME DEFAULT NULL COMMENT '确认时间',
-    CONSTRAINT fk_testdrive_customer FOREIGN KEY (customer_id) REFERENCES user(user_id),
-    CONSTRAINT fk_testdrive_car FOREIGN KEY (car_id) REFERENCES car(car_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='试驾预约表';
+CREATE TABLE appointment (
+    appointment_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '预约编号',
+    customer_id INT NOT NULL COMMENT '客户编号',
+    car_id INT NOT NULL COMMENT '车辆编号',
+    appointment_time DATETIME NOT NULL COMMENT '预约时间',
+    status VARCHAR(10) NOT NULL DEFAULT 'pending' COMMENT '状态：pending待确认 / confirmed已确认 / cancelled已取消',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    handle_time DATETIME DEFAULT NULL COMMENT '处理时间',
+    remark VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    CONSTRAINT fk_appointment_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+    CONSTRAINT fk_appointment_car FOREIGN KEY (car_id) REFERENCES car(car_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='预约表';
 
 -- ============================================
--- 5. 购车订单表 (purchase_order)
+-- 4. 订单表 (order)
 -- ============================================
-CREATE TABLE purchase_order (
-    order_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '订单ID',
-    customer_id INT NOT NULL COMMENT '客户ID',
-    car_id INT NOT NULL COMMENT '车辆ID',
-    quantity INT NOT NULL DEFAULT 1 COMMENT '购买数量',
-    total_price DECIMAL(10, 2) NOT NULL COMMENT '总价',
-    status ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending' COMMENT '状态：待确认/已确认/已取消',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
-    confirmed_at DATETIME DEFAULT NULL COMMENT '确认时间',
-    CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES user(user_id),
-    CONSTRAINT fk_order_car FOREIGN KEY (car_id) REFERENCES car(car_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='购车订单表';
+CREATE TABLE `order` (
+    order_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '订单编号',
+    customer_id INT NOT NULL COMMENT '客户编号',
+    car_id INT NOT NULL COMMENT '车辆编号',
+    quantity INT NOT NULL DEFAULT 1 COMMENT '购车数量',
+    unit_price DECIMAL(12, 2) NOT NULL COMMENT '单价',
+    total_amount DECIMAL(12, 2) NOT NULL COMMENT '订单总金额',
+    order_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
+    status VARCHAR(10) NOT NULL DEFAULT 'pending' COMMENT '状态：pending待处理 / confirmed已确认 / cancelled已取消',
+    handle_time DATETIME DEFAULT NULL COMMENT '处理时间',
+    handler VARCHAR(50) DEFAULT NULL COMMENT '处理人',
+    CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+    CONSTRAINT fk_order_car FOREIGN KEY (car_id) REFERENCES car(car_id),
+    CONSTRAINT chk_order_quantity CHECK (quantity >= 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
 
 -- ============================================
--- 6. 触发器
+-- 5. 触发器
 -- ============================================
 
 -- 触发器1：订单确认后自动扣减库存
 DELIMITER //
 CREATE TRIGGER trg_order_confirm_deduct_stock
-AFTER UPDATE ON purchase_order
+AFTER UPDATE ON `order`
 FOR EACH ROW
 BEGIN
     IF NEW.status = 'confirmed' AND OLD.status = 'pending' THEN
@@ -108,7 +106,7 @@ DELIMITER ;
 -- 触发器2：订单取消后自动恢复库存
 DELIMITER //
 CREATE TRIGGER trg_order_cancel_restore_stock
-AFTER UPDATE ON purchase_order
+AFTER UPDATE ON `order`
 FOR EACH ROW
 BEGIN
     IF NEW.status = 'cancelled' AND OLD.status = 'confirmed' THEN
@@ -120,7 +118,6 @@ END//
 DELIMITER ;
 
 -- 触发器3：库存归零后自动更新车辆状态
--- 使用 BEFORE UPDATE，直接修改 NEW.status 避免同一表递归更新
 DELIMITER //
 CREATE TRIGGER trg_car_stock_check_update_status
 BEFORE UPDATE ON car
