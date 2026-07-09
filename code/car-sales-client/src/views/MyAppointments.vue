@@ -35,7 +35,7 @@
         <div class="detail-specs">
           <div class="spec-item">
             <div class="spec-label">预约编号</div>
-            <div class="spec-value">{{ appointment.code }}</div>
+            <div class="spec-value">{{ appointment.appointmentId }}</div>
           </div>
           <div class="spec-item">
             <div class="spec-label">姓名</div>

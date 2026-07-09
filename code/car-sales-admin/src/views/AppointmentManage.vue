@@ -36,11 +36,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in list" :key="item.id">
-              <td>{{ item.id }}</td>
-              <td>{{ item.customerName || item.username || '-' }}</td>
-              <td>{{ item.brand || '-' }}</td>
-              <td>{{ item.model || '-' }}</td>
+            <tr v-for="item in list" :key="item.appointmentId">
+              <td>{{ item.appointmentId }}</td>
+              <td>{{ item.customerName || '-' }}</td>
+              <td>{{ item.carBrand || '-' }}</td>
+              <td>{{ item.carModel || '-' }}</td>
               <td>{{ formatDateTime(item.appointmentTime) }}</td>
               <td>{{ formatDateTime(item.createTime) }}</td>
               <td>
@@ -49,11 +49,11 @@
                 <span v-else class="badge badge-gray">{{ item.status }}</span>
               </td>
               <td v-if="activeTab === 'pending'">
-                <button class="btn btn-sm btn-success" :disabled="processingId === item.id" @click="openConfirmDialog(item.id)">
-                  {{ processingId === item.id ? '确认中...' : '确认' }}
+                <button class="btn btn-sm btn-success" :disabled="processingId === item.appointmentId" @click="openConfirmDialog(item.appointmentId)">
+                  {{ processingId === item.appointmentId ? '确认中...' : '确认' }}
                 </button>
-                <button class="btn btn-sm btn-danger" :disabled="processingId === item.id" @click="handleReject(item.id)">
-                  {{ processingId === item.id ? '拒绝中...' : '拒绝' }}
+                <button class="btn btn-sm btn-danger" :disabled="processingId === item.appointmentId" @click="handleReject(item.appointmentId)">
+                  {{ processingId === item.appointmentId ? '拒绝中...' : '拒绝' }}
                 </button>
               </td>
               <td v-else>
@@ -145,7 +145,7 @@ async function handleConfirm() {
   processingId.value = confirmTargetId.value
   try {
     await confirmAppointment(confirmTargetId.value, handlerName.value.trim())
-    list.value = list.value.filter(item => item.id !== confirmTargetId.value)
+    list.value = list.value.filter(item => item.appointmentId !== confirmTargetId.value)
     closeConfirmDialog()
   } catch (e) {
     alert('确认失败：' + (e.message || '网络错误'))
@@ -159,7 +159,7 @@ async function handleReject(id) {
   processingId.value = id
   try {
     await rejectAppointment(id)
-    list.value = list.value.filter(item => item.id !== id)
+    list.value = list.value.filter(item => item.appointmentId !== id)
   } catch (e) {
     alert('拒绝失败：' + (e.message || '网络错误'))
   } finally {

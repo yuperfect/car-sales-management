@@ -36,7 +36,7 @@
             <label class="form-label">选择车辆</label>
             <select v-model="form.carId" class="form-control" required @change="onCarChange">
               <option value="" disabled>请选择车辆</option>
-              <option v-for="car in cars" :key="car.id" :value="car.id">
+              <option v-for="car in cars" :key="car.carId" :value="car.carId">
                 {{ car.brand }} {{ car.model }} - ¥{{ formatPrice(car.price) }} (库存: {{ car.stock }})
               </option>
             </select>
@@ -111,7 +111,7 @@ const form = ref({
 
 const selectedCar = computed(() => {
   if (!form.value.carId) return null
-  return cars.value.find(c => c.id === Number(form.value.carId)) || null
+  return cars.value.find(c => c.carId === Number(form.value.carId)) || null
 })
 
 const totalPrice = computed(() => {
@@ -173,8 +173,8 @@ async function handleSubmit() {
       carId: form.value.carId,
       quantity: Number(form.value.quantity)
     })
-    const code = result?.code || result?.id || ''
-    successMsg.value = `订单提交成功！订单编号: ${code}`
+    const id = result?.orderId || ''
+    successMsg.value = `订单提交成功！订单编号: ${id}`
     setTimeout(() => {
       router.push('/my/orders')
     }, 2000)

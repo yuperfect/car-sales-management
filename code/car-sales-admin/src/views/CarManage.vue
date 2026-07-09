@@ -48,8 +48,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="car in cars" :key="car.id">
-              <td>{{ car.id }}</td>
+            <tr v-for="car in cars" :key="car.carId">
+              <td>{{ car.carId }}</td>
               <td>{{ car.brand }}</td>
               <td>{{ car.model }}</td>
               <td>{{ car.displacement || '-' }}</td>
@@ -68,13 +68,13 @@
                 </span>
               </td>
               <td>
-                <router-link :to="`/admin/cars/${car.id}/edit`" class="btn btn-sm btn-primary">
+                <router-link :to="`/admin/cars/${car.carId}/edit`" class="btn btn-sm btn-primary">
                   编辑
                 </router-link>
                 <button
                   v-if="car.status === 'on_sale'"
                   class="btn btn-sm btn-danger"
-                  @click="handleStopSell(car.id)"
+                  @click="handleStopSell(car.carId)"
                 >
                   停售
                 </button>
@@ -128,7 +128,7 @@ async function handleStopSell(id) {
   if (!confirm('确定要停售该车辆吗？')) return
   try {
     await updateCar(id, { status: 'sold_out' })
-    const car = cars.value.find(c => c.id === id)
+    const car = cars.value.find(c => c.carId === id)
     if (car) car.status = 'sold_out'
   } catch (e) {
     alert('操作失败：' + (e.message || '网络错误'))

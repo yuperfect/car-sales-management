@@ -22,9 +22,9 @@
     <div v-else class="grid grid-3">
       <div
         v-for="car in cars"
-        :key="car.id"
+        :key="car.carId"
         class="card vehicle-card"
-        @click="$router.push(`/cars/${car.id}`)"
+        @click="$router.push(`/cars/${car.carId}`)"
       >
         <div class="card-image">🚗</div>
         <div class="card-info">

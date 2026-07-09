@@ -35,7 +35,7 @@
         <div class="detail-specs">
           <div class="spec-item">
             <div class="spec-label">订单编号</div>
-            <div class="spec-value">{{ order.code || order.id }}</div>
+            <div class="spec-value">{{ order.orderId }}</div>
           </div>
           <div class="spec-item">
             <div class="spec-label">车辆</div>
@@ -61,7 +61,7 @@
           </div>
           <div class="spec-item">
             <div class="spec-label">下单时间</div>
-            <div class="spec-value">{{ order.createTime || order.createdAt || '—' }}</div>
+            <div class="spec-value">{{ order.orderTime || '—' }}</div>
           </div>
           <div class="spec-item" v-if="order.handler">
             <div class="spec-label">处理人</div>
@@ -144,10 +144,12 @@ async function handleQuery() {
 }
 
 async function handleCancel(item) {
-  if (!confirm(`确定要取消订单 #${item.code || item.id} 吗？`)) return
+  const orderId = order.value?.orderId
+  if (!orderId) return
+  if (!confirm(`确定要取消订单 #${orderId} 吗？`)) return
   cancelling.value = true
   try {
-    await cancelOrder(item.id)
+    await cancelOrder(orderId)
     order.value.status = 'cancelled'
   } catch (e) {
     alert('取消失败: ' + (e.message || '请重试'))

@@ -62,14 +62,14 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in results" :key="item.id">
-              <td>{{ item.id }}</td>
-              <td>{{ item.customerName || item.username || '-' }}</td>
-              <td>{{ item.brand || '-' }}</td>
-              <td>{{ item.model || '-' }}</td>
+            <tr v-for="item in results" :key="item.orderId">
+              <td>{{ item.orderId }}</td>
+              <td>{{ item.customerName || '-' }}</td>
+              <td>{{ item.carBrand || '-' }}</td>
+              <td>{{ item.carModel || '-' }}</td>
               <td>{{ item.quantity ?? '-' }}</td>
-              <td>{{ formatPrice(item.totalAmount || item.totalPrice) }}</td>
-              <td>{{ formatDateTime(item.createdAt) }}</td>
+              <td>{{ formatPrice(item.totalAmount) }}</td>
+              <td>{{ formatDateTime(item.orderTime || item.createdAt) }}</td>
             </tr>
             <tr v-if="results.length === 0">
               <td colspan="7" style="text-align: center; color: #999;">未找到匹配的记录</td>

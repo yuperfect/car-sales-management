@@ -33,8 +33,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="customer in customers" :key="customer.id">
-              <td>{{ customer.id }}</td>
+            <tr v-for="customer in customers" :key="customer.customerId">
+              <td>{{ customer.customerId }}</td>
               <td>{{ customer.realName || '-' }}</td>
               <td>{{ customer.phone || '-' }}</td>
               <td>{{ formatDate(customer.firstSubmitTime) }}</td>

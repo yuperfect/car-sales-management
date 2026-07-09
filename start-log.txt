@@ -1,0 +1,17 @@
+[20:39:46] =========================================
+[20:39:46]   Car Sales Management System - Starting
+[20:39:46] =========================================
+[20:39:46] Checking MySQL...
+[20:39:47] [OK] MySQL running (port 3306)
+[20:39:47] Building backend...
+[20:39:51] [OK] Backend build success
+[20:39:51] Starting backend (port 8080)...
+[20:40:00] [OK] Backend API ready (port 8080)
+[20:40:00] Starting client frontend (port 3000)...
+[20:40:01] Starting admin frontend (port 5173)...
+[20:40:10] [OK] Client frontend ready (port 3000)
+[20:40:10] [OK] Admin frontend ready (port 5173)
+[20:40:13] [OK] API verified: 8 cars returned
+[20:40:13] =========================================
+[20:40:13]   All services started! (26.7s)
+[20:40:13] =========================================

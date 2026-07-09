@@ -38,26 +38,26 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in list" :key="item.id">
-              <td>{{ item.id }}</td>
-              <td>{{ item.customerName || item.username || '-' }}</td>
-              <td>{{ item.brand || '-' }}</td>
-              <td>{{ item.model || '-' }}</td>
+            <tr v-for="item in list" :key="item.orderId">
+              <td>{{ item.orderId }}</td>
+              <td>{{ item.customerName || '-' }}</td>
+              <td>{{ item.carBrand || '-' }}</td>
+              <td>{{ item.carModel || '-' }}</td>
               <td>{{ item.quantity ?? '-' }}</td>
               <td>{{ formatPrice(item.unitPrice) }}</td>
-              <td>{{ formatPrice(item.totalAmount || item.totalPrice) }}</td>
+              <td>{{ formatPrice(item.totalAmount) }}</td>
               <td>
                 <span v-if="item.status === 'pending'" class="badge badge-orange">待确认</span>
-                <span v-else-if="item.status === 'confirmed' || item.status === '已确认'" class="badge badge-green">已确认</span>
+                <span v-else-if="item.status === 'confirmed'" class="badge badge-green">已确认</span>
                 <span v-else class="badge badge-gray">{{ item.status }}</span>
               </td>
-              <td>{{ formatDateTime(item.createdAt) }}</td>
+              <td>{{ formatDateTime(item.orderTime) }}</td>
               <td v-if="activeTab === 'pending'">
-                <button class="btn btn-sm btn-success" :disabled="processingId === item.id" @click="openConfirmDialog(item.id)">
-                  {{ processingId === item.id ? '确认中...' : '确认' }}
+                <button class="btn btn-sm btn-success" :disabled="processingId === item.orderId" @click="openConfirmDialog(item.orderId)">
+                  {{ processingId === item.orderId ? '确认中...' : '确认' }}
                 </button>
-                <button class="btn btn-sm btn-danger" :disabled="processingId === item.id" @click="handleCancel(item.id)">
-                  {{ processingId === item.id ? '拒绝中...' : '拒绝' }}
+                <button class="btn btn-sm btn-danger" :disabled="processingId === item.orderId" @click="handleCancel(item.orderId)">
+                  {{ processingId === item.orderId ? '拒绝中...' : '拒绝' }}
                 </button>
               </td>
               <td v-else>
@@ -149,7 +149,7 @@ async function handleConfirm() {
   processingId.value = confirmTargetId.value
   try {
     await confirmOrder(confirmTargetId.value, handlerName.value.trim())
-    list.value = list.value.filter(item => item.id !== confirmTargetId.value)
+    list.value = list.value.filter(item => item.orderId !== confirmTargetId.value)
     closeConfirmDialog()
   } catch (e) {
     alert('确认失败：' + (e.message || '网络错误'))
@@ -163,7 +163,7 @@ async function handleCancel(id) {
   processingId.value = id
   try {
     await cancelOrder(id)
-    list.value = list.value.filter(item => item.id !== id)
+    list.value = list.value.filter(item => item.orderId !== id)
   } catch (e) {
     alert('拒绝失败：' + (e.message || '网络错误'))
   } finally {

@@ -36,7 +36,7 @@
             <label class="form-label">选择车辆</label>
             <select v-model="form.carId" class="form-control" required>
               <option value="" disabled>请选择车辆</option>
-              <option v-for="car in cars" :key="car.id" :value="car.id">
+              <option v-for="car in cars" :key="car.carId" :value="car.carId">
                 {{ car.brand }} {{ car.model }} - ¥{{ formatPrice(car.price) }}
               </option>
             </select>
@@ -154,8 +154,8 @@ async function handleSubmit() {
       appointmentTime: form.value.appointmentTime,
       remark: form.value.remark.trim()
     })
-    const code = result?.code || ''
-    successMsg.value = `预约提交成功！预约编号: ${code}`
+    const id = result?.appointmentId || ''
+    successMsg.value = `预约提交成功！预约编号: ${id}`
     setTimeout(() => {
       router.push('/my/appointments')
     }, 2000)

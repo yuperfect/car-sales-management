@@ -27,7 +27,7 @@
           <div v-if="apptResult" class="detail-specs" style="margin-top: 12px;">
             <div class="spec-item">
               <div class="spec-label">编号</div>
-              <div class="spec-value">{{ apptResult.code }}</div>
+              <div class="spec-value">{{ apptResult.appointmentId }}</div>
             </div>
             <div class="spec-item">
               <div class="spec-label">车辆</div>
@@ -75,7 +75,7 @@
           <div v-if="orderResult" class="detail-specs" style="margin-top: 12px;">
             <div class="spec-item">
               <div class="spec-label">编号</div>
-              <div class="spec-value">{{ orderResult.code || orderResult.id }}</div>
+              <div class="spec-value">{{ orderResult.orderId }}</div>
             </div>
             <div class="spec-item">
               <div class="spec-label">车辆</div>
