@@ -283,6 +283,13 @@ car-sales-management/
 | 用户名 | `root` |
 | 密码 | `123456` |
 
+> **⚠️ 如果 MySQL 密码不同**，克隆项目后请修改  
+> `code/car-sales-backend/src/main/resources/application.yml` 第 8 行：
+> ```yaml
+> password: 你的MySQL密码
+> ```
+> 修改后重新编译启动即可。
+
 ### 种子数据
 
 启动时自动初始化：
