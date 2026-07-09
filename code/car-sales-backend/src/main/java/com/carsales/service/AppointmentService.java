@@ -1,8 +1,10 @@
 package com.carsales.service;
 
 import com.carsales.entity.Appointment;
+import com.carsales.entity.Car;
 import com.carsales.entity.Customer;
 import com.carsales.repository.AppointmentRepository;
+import com.carsales.repository.CarRepository;
 import com.carsales.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,11 +18,14 @@ public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final CustomerRepository customerRepository;
+    private final CarRepository carRepository;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
-                              CustomerRepository customerRepository) {
+                              CustomerRepository customerRepository,
+                              CarRepository carRepository) {
         this.appointmentRepository = appointmentRepository;
         this.customerRepository = customerRepository;
+        this.carRepository = carRepository;
     }
 
     public List<Appointment> findAll() {
@@ -51,9 +56,12 @@ public class AppointmentService {
                     return customerRepository.save(newCustomer);
                 });
 
+        Car car = carRepository.findById(carId)
+                .orElseThrow(() -> new RuntimeException("Car not found with id: " + carId));
+
         Appointment appointment = new Appointment();
         appointment.setCustomer(customer);
-        appointment.setCarId(carId);
+        appointment.setCar(car);
         appointment.setAppointmentTime(appointmentTime);
         appointment.setRemark(remark);
         appointment.setStatus("pending");

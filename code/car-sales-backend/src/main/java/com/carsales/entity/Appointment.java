@@ -1,6 +1,7 @@
 package com.carsales.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -57,5 +58,25 @@ public class Appointment {
         if (this.status == null) {
             this.status = "pending";
         }
+    }
+
+    @JsonProperty("customerName")
+    public String getCustomerName() {
+        return customer != null ? customer.getRealName() : null;
+    }
+
+    @JsonProperty("customerPhone")
+    public String getCustomerPhone() {
+        return customer != null ? customer.getPhone() : null;
+    }
+
+    @JsonProperty("carBrand")
+    public String getCarBrand() {
+        return car != null ? car.getBrand() : null;
+    }
+
+    @JsonProperty("carModel")
+    public String getCarModel() {
+        return car != null ? car.getModel() : null;
     }
 }

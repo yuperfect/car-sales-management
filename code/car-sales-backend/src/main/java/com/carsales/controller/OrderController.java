@@ -6,6 +6,7 @@ import com.carsales.service.OrderService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/purchase-orders")
@@ -25,12 +26,20 @@ public class OrderController {
         return ApiResponse.success(orderService.findAll());
     }
 
+    @GetMapping("/{id}")
+    public ApiResponse<PurchaseOrder> findById(@PathVariable Integer id) {
+        return orderService.findById(id)
+                .map(ApiResponse::success)
+                .orElse(ApiResponse.error("Order not found with id: " + id));
+    }
+
     @PostMapping
-    public ApiResponse<PurchaseOrder> create(@RequestParam String customerName,
-                                              @RequestParam String customerPhone,
-                                              @RequestParam Integer carId,
-                                              @RequestParam(defaultValue = "1") Integer quantity) {
+    public ApiResponse<PurchaseOrder> create(@RequestBody Map<String, Object> body) {
         try {
+            String customerName = (String) body.get("customerName");
+            String customerPhone = (String) body.get("customerPhone");
+            Integer carId = Integer.valueOf(body.get("carId").toString());
+            Integer quantity = body.containsKey("quantity") ? Integer.valueOf(body.get("quantity").toString()) : 1;
             return ApiResponse.success(orderService.create(customerName, customerPhone, carId, quantity));
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
@@ -49,9 +58,19 @@ public class OrderController {
 
     @PutMapping("/{id}/confirm")
     public ApiResponse<PurchaseOrder> confirm(@PathVariable Integer id,
-                                               @RequestParam(required = false, defaultValue = "admin") String handler) {
+                                               @RequestBody Map<String, Object> body) {
         try {
+            String handler = (String) body.getOrDefault("handler", "admin");
             return ApiResponse.success(orderService.confirm(id, handler));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/cancel")
+    public ApiResponse<PurchaseOrder> cancel(@PathVariable Integer id) {
+        try {
+            return ApiResponse.success(orderService.cancel(id));
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
         }
