@@ -7,7 +7,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,8 +61,10 @@ public class StatisticsService {
             Long totalQty = (Long) row[1];
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("carId", carId);
-            item.put("totalQuantity", totalQty);
+            item.put("count", totalQty);         // 前端期望 count
+            item.put("totalQuantity", totalQty);  // 向下兼容
             carRepository.findById(carId).ifPresent(car -> {
+                item.put("name", car.getBrand() + " " + car.getModel());  // 前端期望 name
                 item.put("brand", car.getBrand());
                 item.put("model", car.getModel());
             });
@@ -78,8 +84,10 @@ public class StatisticsService {
             BigDecimal totalRevenue = (BigDecimal) row[1];
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("carId", carId);
-            item.put("totalRevenue", totalRevenue);
+            item.put("amount", totalRevenue);     // 前端期望 amount
+            item.put("totalRevenue", totalRevenue); // 向下兼容
             carRepository.findById(carId).ifPresent(car -> {
+                item.put("name", car.getBrand() + " " + car.getModel());  // 前端期望 name
                 item.put("brand", car.getBrand());
                 item.put("model", car.getModel());
             });
@@ -90,10 +98,10 @@ public class StatisticsService {
 
     /**
      * 热销价格区间统计
+     * 返回格式: [{range: "10万以下", count: N}, {range: "10万-20万", count: N}, ...]
      */
     public List<Map<String, Object>> getPriceRangeStats() {
         List<PurchaseOrder> confirmedOrders = orderService.findByStatus(com.carsales.enums.OrderStatus.confirmed);
-        Map<String, Object> stats = new LinkedHashMap<>();
 
         int range1 = 0, range2 = 0, range3 = 0, range4 = 0, range5 = 0;
 
@@ -113,13 +121,21 @@ public class StatisticsService {
             }
         }
 
-        stats.put("lt_10万", range1);
-        stats.put("10万_20万", range2);
-        stats.put("20万_30万", range3);
-        stats.put("30万_50万", range4);
-        stats.put("gte_50万", range5);
+        // 改为数组格式，前端期望 [{range, count}, ...]
+        List<Map<String, Object>> result = new ArrayList<>();
+        addRangeItem(result, "10万以下", range1);
+        addRangeItem(result, "10万-20万", range2);
+        addRangeItem(result, "20万-30万", range3);
+        addRangeItem(result, "30万-50万", range4);
+        addRangeItem(result, "50万以上", range5);
+        return result;
+    }
 
-        return Collections.singletonList(stats);
+    private void addRangeItem(List<Map<String, Object>> list, String range, int count) {
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("range", range);
+        item.put("count", count);
+        list.add(item);
     }
 
     /**

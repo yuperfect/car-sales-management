@@ -50,21 +50,24 @@ let shareChart = null
 onMounted(async () => {
   loading.value = true
   error.value = ''
+  let salesData, shareData, priceRangeData
   try {
-    const [salesData, shareData, priceRangeData] = await Promise.all([
+    [salesData, shareData, priceRangeData] = await Promise.all([
       fetchSalesHotStats(),
       fetchSalesShareStats(),
       fetchPriceRangeStats()
     ])
-    await nextTick()
-    renderSalesChart(salesData)
-    renderPriceRangeChart(priceRangeData)
-    renderShareChart(shareData)
   } catch (e) {
     error.value = '获取统计数据失败：' + (e.message || '网络错误')
   } finally {
     loading.value = false
   }
+
+  // 等 loading=false 后 v-else 渲染出图表容器，再初始化 ECharts
+  await nextTick()
+  if (salesData) renderSalesChart(salesData)
+  if (shareData) renderShareChart(shareData)
+  if (priceRangeData) renderPriceRangeChart(priceRangeData)
 
   window.addEventListener('resize', handleResize)
 })
