@@ -36,10 +36,24 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, In
            "AND (:customerName IS NULL OR o.customer.realName LIKE %:customerName%) " +
            "AND (:startDate IS NULL OR o.orderTime >= :startDate) " +
            "AND (:endDate IS NULL OR o.orderTime <= :endDate)")
-    List<PurchaseOrder> findByFilters(@Param("carType") String carType,
-                                       @Param("minPrice") BigDecimal minPrice,
-                                       @Param("maxPrice") BigDecimal maxPrice,
-                                       @Param("customerName") String customerName,
-                                       @Param("startDate") LocalDateTime startDate,
-                                       @Param("endDate") LocalDateTime endDate);
+    List<PurchaseOrder> findByFiltersFuzzy(@Param("carType") String carType,
+                                           @Param("minPrice") BigDecimal minPrice,
+                                           @Param("maxPrice") BigDecimal maxPrice,
+                                           @Param("customerName") String customerName,
+                                           @Param("startDate") LocalDateTime startDate,
+                                           @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT o FROM PurchaseOrder o WHERE " +
+           "(:carType IS NULL OR o.car.model = :carType OR o.car.brand = :carType) " +
+           "AND (:minPrice IS NULL OR o.totalAmount >= :minPrice) " +
+           "AND (:maxPrice IS NULL OR o.totalAmount <= :maxPrice) " +
+           "AND (:customerName IS NULL OR o.customer.realName = :customerName) " +
+           "AND (:startDate IS NULL OR o.orderTime >= :startDate) " +
+           "AND (:endDate IS NULL OR o.orderTime <= :endDate)")
+    List<PurchaseOrder> findByFiltersExact(@Param("carType") String carType,
+                                           @Param("minPrice") BigDecimal minPrice,
+                                           @Param("maxPrice") BigDecimal maxPrice,
+                                           @Param("customerName") String customerName,
+                                           @Param("startDate") LocalDateTime startDate,
+                                           @Param("endDate") LocalDateTime endDate);
 }

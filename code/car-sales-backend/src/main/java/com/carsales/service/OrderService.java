@@ -149,7 +149,11 @@ public class OrderService {
                                               BigDecimal maxPrice,
                                               String customerName,
                                               LocalDateTime startDate,
-                                              LocalDateTime endDate) {
-        return purchaseOrderRepository.findByFilters(carType, minPrice, maxPrice, customerName, startDate, endDate);
+                                              LocalDateTime endDate,
+                                              String mode) {
+        if ("exact".equals(mode)) {
+            return purchaseOrderRepository.findByFiltersExact(carType, minPrice, maxPrice, customerName, startDate, endDate);
+        }
+        return purchaseOrderRepository.findByFiltersFuzzy(carType, minPrice, maxPrice, customerName, startDate, endDate);
     }
 }

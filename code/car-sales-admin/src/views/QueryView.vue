@@ -65,8 +65,8 @@
             <tr v-for="item in results" :key="item.orderId">
               <td>{{ item.orderId }}</td>
               <td>{{ item.customerName || '-' }}</td>
-              <td>{{ item.carBrand || '-' }}</td>
-              <td>{{ item.carModel || '-' }}</td>
+              <td>{{ item.brand || '-' }}</td>
+              <td>{{ item.model || '-' }}</td>
               <td>{{ item.quantity ?? '-' }}</td>
               <td>{{ formatPrice(item.totalAmount) }}</td>
               <td>{{ formatDateTime(item.orderTime || item.createdAt) }}</td>
@@ -108,7 +108,7 @@ async function doQuery() {
   try {
     const params = {}
     if (form.mode) params.mode = form.mode
-    if (form.brand) params.brand = form.brand
+    if (form.brand) params.carType = form.brand
     if (form.minPrice !== '' && form.minPrice !== null) params.minPrice = form.minPrice
     if (form.maxPrice !== '' && form.maxPrice !== null) params.maxPrice = form.maxPrice
     if (form.customerName) params.customerName = form.customerName

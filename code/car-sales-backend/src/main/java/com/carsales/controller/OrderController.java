@@ -2,6 +2,7 @@ package com.carsales.controller;
 
 import com.carsales.dto.ApiResponse;
 import com.carsales.entity.PurchaseOrder;
+import com.carsales.enums.OrderStatus;
 import com.carsales.service.OrderService;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,9 +20,14 @@ public class OrderController {
     }
 
     @GetMapping
-    public ApiResponse<List<PurchaseOrder>> findAll(@RequestParam(required = false) Integer customerId) {
+    public ApiResponse<List<PurchaseOrder>> findAll(
+            @RequestParam(required = false) Integer customerId,
+            @RequestParam(required = false) String status) {
         if (customerId != null) {
             return ApiResponse.success(orderService.findByCustomerId(customerId));
+        }
+        if (status != null && !status.isBlank()) {
+            return ApiResponse.success(orderService.findByStatus(OrderStatus.valueOf(status)));
         }
         return ApiResponse.success(orderService.findAll());
     }

@@ -146,8 +146,9 @@ public class StatisticsService {
                                                  BigDecimal maxPrice,
                                                  String customerName,
                                                  LocalDateTime startDate,
-                                                 LocalDateTime endDate) {
-        List<PurchaseOrder> orders = orderService.findByFilters(carType, minPrice, maxPrice, customerName, startDate, endDate);
+                                                 LocalDateTime endDate,
+                                                 String mode) {
+        List<PurchaseOrder> orders = orderService.findByFilters(carType, minPrice, maxPrice, customerName, startDate, endDate, mode);
         return orders.stream().map(order -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("orderId", order.getOrderId());

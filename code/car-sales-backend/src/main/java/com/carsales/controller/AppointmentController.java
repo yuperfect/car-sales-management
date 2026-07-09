@@ -20,9 +20,14 @@ public class AppointmentController {
     }
 
     @GetMapping
-    public ApiResponse<List<Appointment>> findAll(@RequestParam(required = false) Integer customerId) {
+    public ApiResponse<List<Appointment>> findAll(
+            @RequestParam(required = false) Integer customerId,
+            @RequestParam(required = false) String status) {
         if (customerId != null) {
             return ApiResponse.success(appointmentService.findByCustomerId(customerId));
+        }
+        if (status != null && !status.isBlank()) {
+            return ApiResponse.success(appointmentService.findByStatus(status));
         }
         return ApiResponse.success(appointmentService.findAll());
     }
