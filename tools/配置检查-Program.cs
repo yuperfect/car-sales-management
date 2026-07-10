@@ -60,20 +60,12 @@ namespace CarSalesChecker
             StepTitle(7, "数据库 (car_sales_db)");
             CheckDatabase();
 
-            // ===== 8. 数据表 =====
-            StepTitle(8, "数据表结构");
-            CheckTables();
-
-            // ===== 9. 种子数据 =====
-            StepTitle(9, "种子数据");
-            CheckSeedData();
-
-            // ===== 10. 更新配置文件 =====
-            StepTitle(10, "更新配置文件");
+            // ===== 8. 更新配置文件 =====
+            StepTitle(8, "更新配置文件");
             UpdateConfig();
 
-            // ===== 11. 检查是否能正常打开网页 =====
-            StepTitle(11, "前端构建状态");
+            // ===== 9. 检查是否能正常打开网页 =====
+            StepTitle(9, "前端构建状态");
             CheckFrontendBuild();
 
             // ===== 汇总 =====
@@ -334,104 +326,6 @@ namespace CarSalesChecker
             }
         }
 
-        static void CheckTables()
-        {
-            var (ok, output) = RunCmd("cmd.exe",
-                $"/c mysql -u{mysqlUser} -p{mysqlPass} -e \"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='car_sales_db';\" -N --connect-timeout=5");
-            int? count = null;
-            if (ok)
-            {
-                string trimmed = output.Trim();
-                if (int.TryParse(trimmed, out int c)) count = c;
-            }
-
-            if (count.HasValue && count > 0)
-            {
-                WriteOk("数据表", $"表结构已存在 ({count}张表)");
-                okCount++;
-                return;
-            }
-
-            WriteFail("数据表", "表结构不存在");
-            if (AskUser("是否自动执行 schema.sql 建表?"))
-            {
-                string schemaPath = Path.Combine(root, "code", "car-sales-backend", "src", "main", "resources", "schema.sql");
-                if (File.Exists(schemaPath))
-                {
-                    string sql = File.ReadAllText(schemaPath);
-                    var (ok2, err) = ExecuteSQL(sql, 60);
-                    if (ok2)
-                    {
-                        WriteOk("数据表", "建表成功 (customer/car/appointment/purchase_order)");
-                        okCount++;
-                    }
-                    else
-                    {
-                        WriteFail("数据表", $"建表失败: {err}");
-                        failCount++;
-                    }
-                }
-                else
-                {
-                    WriteFail("数据表", "找不到 schema.sql");
-                    failCount++;
-                }
-            }
-            else
-            {
-                failCount++;
-            }
-        }
-
-        static void CheckSeedData()
-        {
-            var (ok, output) = RunCmd("cmd.exe",
-                $"/c mysql -u{mysqlUser} -p{mysqlPass} -e \"SELECT COUNT(*) FROM car_sales_db.car;\" -N --connect-timeout=5");
-            int? count = null;
-            if (ok)
-            {
-                string trimmed = output.Trim();
-                if (int.TryParse(trimmed, out int c)) count = c;
-            }
-
-            if (count.HasValue && count > 0)
-            {
-                WriteOk("种子数据", $"已有数据 ({count}条车辆记录)");
-                okCount++;
-                return;
-            }
-
-            WriteFail("种子数据", "无数据");
-            if (AskUser("是否自动执行 data.sql 插入种子数据?"))
-            {
-                string dataPath = Path.Combine(root, "code", "car-sales-backend", "src", "main", "resources", "data.sql");
-                if (File.Exists(dataPath))
-                {
-                    string sql = File.ReadAllText(dataPath);
-                    var (ok2, _) = ExecuteSQL(sql, 60);
-                    if (ok2)
-                    {
-                        WriteOk("种子数据", "插入成功 (客户/车辆/预约/订单)");
-                        okCount++;
-                    }
-                    else
-                    {
-                        WriteFail("种子数据", "插入失败");
-                        failCount++;
-                    }
-                }
-                else
-                {
-                    WriteFail("种子数据", "找不到 data.sql");
-                    failCount++;
-                }
-            }
-            else
-            {
-                failCount++;
-            }
-        }
-
         static void UpdateConfig()
         {
             string configPath = Path.Combine(root, "code", "car-sales-backend", "src", "main", "resources", "application.yml");
@@ -503,7 +397,7 @@ string content = File.ReadAllText(configPath, Encoding.UTF8);
 
         static void StepTitle(int num, string title)
         {
-            Console.WriteLine($"--- [{num}/11] {title} ---");
+            Console.WriteLine($"--- [{num}/9] {title} ---");
         }
 
         static void WriteOk(string item, string msg)

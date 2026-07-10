@@ -8,4 +8,8 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="配置检查-Program.cs" />
+    <Compile Remove="关闭系统-Program.cs" />
+  </ItemGroup>
 </Project>
