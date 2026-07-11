@@ -9,18 +9,10 @@ CREATE DATABASE IF NOT EXISTS car_sales_db DEFAULT CHARACTER SET utf8mb4 COLLATE
 USE car_sales_db;
 
 -- ============================================
--- 清理旧表
--- ============================================
-DROP TABLE IF EXISTS purchase_order;
-DROP TABLE IF EXISTS appointment;
-DROP TABLE IF EXISTS car;
-DROP TABLE IF EXISTS customer;
-
--- ============================================
 -- 1. 客户表 (customer)
 -- 说明：客户信息由提交预约或订单时自动创建，无登录功能
 -- ============================================
-CREATE TABLE customer (
+CREATE TABLE IF NOT EXISTS customer (
     customer_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '客户编号',
     real_name VARCHAR(50) NOT NULL COMMENT '姓名',
     phone CHAR(11) NOT NULL COMMENT '联系电话（11位手机号）',
@@ -31,7 +23,7 @@ CREATE TABLE customer (
 -- ============================================
 -- 2. 车辆表 (car)
 -- ============================================
-CREATE TABLE car (
+CREATE TABLE IF NOT EXISTS car (
     car_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '车辆编号',
     brand VARCHAR(50) NOT NULL COMMENT '品牌',
     model VARCHAR(50) NOT NULL COMMENT '型号',
@@ -50,7 +42,7 @@ CREATE TABLE car (
 -- ============================================
 -- 3. 预约表 (appointment)
 -- ============================================
-CREATE TABLE appointment (
+CREATE TABLE IF NOT EXISTS appointment (
     appointment_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '预约编号',
     customer_id INT NOT NULL COMMENT '客户编号',
     car_id INT NOT NULL COMMENT '车辆编号',
@@ -67,7 +59,7 @@ CREATE TABLE appointment (
 -- ============================================
 -- 4. 订单表 (purchase_order)
 -- ============================================
-CREATE TABLE purchase_order (
+CREATE TABLE IF NOT EXISTS purchase_order (
     order_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '订单编号',
     customer_id INT NOT NULL COMMENT '客户编号',
     car_id INT NOT NULL COMMENT '车辆编号',
