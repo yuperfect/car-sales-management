@@ -1,5 +1,2 @@
-﻿@
-# Ignore uploaded images
-uploads/images/*
-!uploads/images/.gitkeep
+﻿# Uploaded images are tracked in Git for seed data reproducibility
 

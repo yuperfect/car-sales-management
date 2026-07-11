@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 
 const ADMIN_URL = 'http://localhost:5173';
-const IMAGE_PATH = 'D:\\MIS_Design\\ui-test-car.jpg';
+const IMAGE_PATH = './test-assets/test-car.jpg';
 
 async function main() {
   const browser = await chromium.launch({ headless: true });
@@ -67,7 +67,7 @@ async function main() {
   } catch (e) {
     console.error('\nFAILED:', e.message);
     try {
-      await page.screenshot({ path: 'D:\\MIS_Design\\ui-test-failure.png', fullPage: true });
+      await page.screenshot({ path: './test-assets/ui-test-failure.png', fullPage: true });
       console.log('Screenshot saved');
     } catch {}
     process.exit(1);
