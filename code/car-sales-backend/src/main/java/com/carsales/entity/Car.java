@@ -1,6 +1,7 @@
 package com.carsales.entity;
 
 import com.carsales.enums.CarStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -51,6 +52,10 @@ public class Car {
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;
+
+    @Transient
+    @JsonProperty("imageVersion")
+    private Long imageVersion;
 
     @PrePersist
     protected void onCreate() {

@@ -52,7 +52,7 @@
             <tr v-for="car in cars" :key="car.carId">
               <td>{{ car.carId }}</td>
               <td>
-                <img v-if="car.imageUrl" :src="car.imageUrl" class="car-thumb" />
+                <img v-if="car.imageUrl" :src="car.imageUrl + (car.imageVersion ? '?v=' + car.imageVersion : '')" class="car-thumb" />
                 <span v-else class="no-image">无</span>
               </td>
               <td>{{ car.brand }}</td>

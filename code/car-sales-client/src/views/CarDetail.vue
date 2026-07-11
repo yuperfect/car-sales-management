@@ -15,7 +15,7 @@
     <!-- 车辆详情 -->
     <div v-else-if="car" class="detail-header card">
       <div class="detail-image">
-          <img v-if="car.imageUrl" :src="car.imageUrl" :alt="car.brand + ' ' + car.model"
+          <img v-if="car.imageUrl" :src="car.imageUrl + (car.imageVersion ? '?v=' + car.imageVersion : '')" :alt="car.brand + ' ' + car.model"
                class="detail-thumb" @error="onImageError($event)" />
           <div v-else class="detail-image-fallback">🚗</div>
         </div>

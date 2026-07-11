@@ -170,7 +170,7 @@ onMounted(async () => {
         status: data.status || 'on_sale'
       }
       if (data.imageUrl) {
-        imagePreview.value = data.imageUrl
+        imagePreview.value = data.imageUrl + (data.imageVersion ? '?v=' + data.imageVersion : '')
       }
     } catch (e) {
       error.value = '获取车辆信息失败：' + (e.message || '网络错误')

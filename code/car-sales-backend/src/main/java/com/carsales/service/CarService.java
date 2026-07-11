@@ -41,15 +41,22 @@ public class CarService {
     }
 
     public List<Car> findAll() {
-        return carRepository.findAll();
+        List<Car> cars = carRepository.findAll();
+        cars.forEach(this::enrichImageVersion);
+        return cars;
     }
 
     public Optional<Car> findById(Integer id) {
-        return carRepository.findById(id);
+        return carRepository.findById(id).map(car -> {
+            enrichImageVersion(car);
+            return car;
+        });
     }
 
     public Car save(Car car) {
-        return carRepository.save(car);
+        Car saved = carRepository.save(car);
+        enrichImageVersion(saved);
+        return saved;
     }
 
     public Car update(Integer id, Car updated) {
@@ -90,15 +97,21 @@ public class CarService {
     }
 
     public List<Car> findByStatus(CarStatus status) {
-        return carRepository.findByStatus(status);
+        List<Car> cars = carRepository.findByStatus(status);
+        cars.forEach(this::enrichImageVersion);
+        return cars;
     }
 
     public List<Car> findByFilters(String brand, String model, BigDecimal minPrice, BigDecimal maxPrice) {
-        return carRepository.findByFilters(brand, model, minPrice, maxPrice);
+        List<Car> cars = carRepository.findByFilters(brand, model, minPrice, maxPrice);
+        cars.forEach(this::enrichImageVersion);
+        return cars;
     }
 
     public List<Car> findByKeyword(String keyword) {
-        return carRepository.findByKeyword(keyword);
+        List<Car> cars = carRepository.findByKeyword(keyword);
+        cars.forEach(this::enrichImageVersion);
+        return cars;
     }
 
     @Transactional
@@ -181,6 +194,7 @@ public class CarService {
             savedCar = carRepository.save(savedCar);
         }
 
+        enrichImageVersion(savedCar);
         return savedCar;
     }
 
@@ -218,8 +232,27 @@ public class CarService {
             }
             // imageFile == null → 不处理图片，保持原样
 
+            enrichImageVersion(car);
             return carRepository.save(car);
         }).orElseThrow(() -> new RuntimeException("车辆不存在，ID: " + id));
+    }
+
+    // ========== Image version enrichment ==========
+
+    /**
+     * 设置 imageVersion 为图片文件的最后修改时间戳（用于前端缓存控制）
+     */
+    private void enrichImageVersion(Car car) {
+        if (car == null || car.getImageUrl() == null) return;
+        try {
+            String filename = car.getImageUrl().substring(car.getImageUrl().lastIndexOf('/') + 1);
+            Path filePath = Paths.get(UPLOAD_DIR, filename);
+            if (Files.exists(filePath)) {
+                car.setImageVersion(Files.getLastModifiedTime(filePath).toMillis());
+            }
+        } catch (IOException e) {
+            // 忽略，不阻塞主流程
+        }
     }
 
     // ========== Private image helpers ==========

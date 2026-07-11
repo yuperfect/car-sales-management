@@ -27,7 +27,7 @@
         @click="$router.push(`/cars/${car.carId}`)"
       >
         <div class="card-image">
-          <img v-if="car.imageUrl" :src="car.imageUrl" :alt="car.brand + ' ' + car.model"
+           <img v-if="car.imageUrl" :src="car.imageUrl + (car.imageVersion ? '?v=' + car.imageVersion : '')" :alt="car.brand + ' ' + car.model"
                class="car-thumb" @error="onImageError($event)" />
           <div v-else class="card-image-fallback">🚗</div>
         </div>
