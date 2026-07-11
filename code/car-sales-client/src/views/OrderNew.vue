@@ -28,7 +28,7 @@
               v-model="form.customerPhone"
               required
               maxlength="11"
-              pattern="1[3-9]\d{9}"
+              pattern="\d{11}"
               title="请输入11位手机号"
               placeholder="请输入11位手机号"
             />

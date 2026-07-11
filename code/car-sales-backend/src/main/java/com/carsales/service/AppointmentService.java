@@ -47,7 +47,7 @@ public class AppointmentService {
     @Transactional
     public Appointment create(String customerName, String customerPhone, Integer carId, LocalDateTime appointmentTime, String remark) {
         // validate phone
-        if (customerPhone == null || !customerPhone.matches("1[3-9]\\d{9}")) {
+        if (customerPhone == null || !customerPhone.matches("\\d{11}")) {
             throw new RuntimeException("请输入正确的11位手机号");
         }
         // find or create customer
@@ -62,6 +62,10 @@ public class AppointmentService {
 
         Car car = carRepository.findById(carId)
                 .orElseThrow(() -> new RuntimeException("Car not found with id: " + carId));
+
+        if (car.getStock() <= 0) {
+            throw new RuntimeException("该车辆已售罄，暂不可预约");
+        }
 
         Appointment appointment = new Appointment();
         appointment.setCustomer(customer);

@@ -49,7 +49,7 @@ public class OrderService {
     @Transactional
     public PurchaseOrder create(String customerName, String customerPhone, Integer carId, Integer quantity) {
         // validate phone
-        if (customerPhone == null || !customerPhone.matches("1[3-9]\\d{9}")) {
+        if (customerPhone == null || !customerPhone.matches("\\d{11}")) {
             throw new RuntimeException("请输入正确的11位手机号");
         }
         // find or create customer
