@@ -52,7 +52,7 @@ public class CarController {
 
     // ======== JSON 格式端点（向后兼容，Excel导入等使用） ========
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse<Car> create(@RequestBody Car car) {
         try {
             return ApiResponse.success(carService.save(car));
@@ -61,7 +61,7 @@ public class CarController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse<Car> update(@PathVariable Integer id, @RequestBody Car car) {
         try {
             return ApiResponse.success(carService.update(id, car));

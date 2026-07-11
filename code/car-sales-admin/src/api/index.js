@@ -28,17 +28,13 @@ export const fetchCars = (params) => request.get('/cars', { params })
 export const fetchCarById = (id) => request.get(`/cars/${id}`)
 export const createCar = (data) => {
   if (data instanceof FormData) {
-    return request.post('/cars', data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    return request.post('/cars', data)
   }
   return request.post('/cars', data)
 }
 export const updateCar = (id, data) => {
   if (data instanceof FormData) {
-    return request.put(`/cars/${id}`, data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    return request.put(`/cars/${id}`, data)
   }
   return request.put(`/cars/${id}`, data)
 }
