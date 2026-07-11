@@ -53,6 +53,30 @@
           </div>
         </div>
 
+        <div class="form-row">
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label">车辆图片</label>
+            <div class="image-upload-area" @click="triggerFileInput">
+              <img v-if="imagePreview" :src="imagePreview" class="image-preview" />
+              <div v-else class="image-placeholder">
+                <span style="font-size: 32px;">📷</span>
+                <span>点击上传图片</span>
+                <span style="font-size: 12px; color: #999;">支持 jpg/png/webp，≤5MB</span>
+              </div>
+            </div>
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style="display: none"
+              @change="onFileChange"
+            />
+            <button v-if="imagePreview" type="button" class="btn btn-sm" @click="removeImage" style="margin-top: 8px;">
+              移除图片
+            </button>
+          </div>
+        </div>
+
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" :disabled="submitting">
             {{ submitting ? '保存中...' : '保存' }}
@@ -76,6 +100,45 @@ const isEdit = computed(() => !route.meta.isNew)
 const carId = computed(() => route.params.id)
 const submitting = ref(false)
 const error = ref('')
+
+const fileInput = ref(null)
+const imagePreview = ref('')
+const imageFile = ref(null)
+const removeExistingImage = ref(false)
+
+function triggerFileInput() {
+  fileInput.value?.click()
+}
+
+function onFileChange(e) {
+  const file = e.target.files[0]
+  if (!file) return
+
+  // Validate type
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp']
+  if (!validTypes.includes(file.type)) {
+    error.value = '仅支持 jpg/png/webp 格式'
+    return
+  }
+
+  // Validate size (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    error.value = '图片不能超过 5MB'
+    return
+  }
+
+  imageFile.value = file
+  // Create preview URL
+  imagePreview.value = URL.createObjectURL(file)
+  removeExistingImage.value = false
+}
+
+function removeImage() {
+  imageFile.value = null
+  imagePreview.value = ''
+  removeExistingImage.value = true
+  if (fileInput.value) fileInput.value.value = ''
+}
 
 const form = ref({
   brand: '',
@@ -102,6 +165,9 @@ onMounted(async () => {
         stock: data.stock || 0,
         status: data.status || 'on_sale'
       }
+      if (data.imageUrl) {
+        imagePreview.value = data.imageUrl
+      }
     } catch (e) {
       error.value = '获取车辆信息失败：' + (e.message || '网络错误')
     }
@@ -112,10 +178,26 @@ async function handleSubmit() {
   submitting.value = true
   error.value = ''
   try {
-    if (isEdit.value) {
-      await updateCar(carId.value, form.value)
+    if (imageFile.value || removeExistingImage.value) {
+      // Use FormData when image changes
+      const formData = new FormData()
+      const carData = { ...form.value }
+      formData.append('car', new Blob([JSON.stringify(carData)], { type: 'application/json' }))
+      if (imageFile.value) {
+        formData.append('image', imageFile.value)
+      }
+      if (isEdit.value) {
+        await updateCar(carId.value, formData)
+      } else {
+        await createCar(formData)
+      }
     } else {
-      await createCar(form.value)
+      // No image changes - use JSON as before
+      if (isEdit.value) {
+        await updateCar(carId.value, form.value)
+      } else {
+        await createCar(form.value)
+      }
     }
     router.push('/admin/cars')
   } catch (e) {

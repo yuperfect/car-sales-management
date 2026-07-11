@@ -26,8 +26,22 @@ export const fetchDashboardStats = () => request.get('/dashboard/stats')
 // ==================== 车辆管理 ====================
 export const fetchCars = (params) => request.get('/cars', { params })
 export const fetchCarById = (id) => request.get(`/cars/${id}`)
-export const createCar = (data) => request.post('/cars', data)
-export const updateCar = (id, data) => request.put(`/cars/${id}`, data)
+export const createCar = (data) => {
+  if (data instanceof FormData) {
+    return request.post('/cars', data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  }
+  return request.post('/cars', data)
+}
+export const updateCar = (id, data) => {
+  if (data instanceof FormData) {
+    return request.put(`/cars/${id}`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  }
+  return request.put(`/cars/${id}`, data)
+}
 export const deleteCar = (id) => request.delete(`/cars/${id}`)
 export const importCars = (formData) => request.post('/cars/import', formData, {
   headers: { 'Content-Type': 'multipart/form-data' }
