@@ -26,7 +26,11 @@
         class="card vehicle-card"
         @click="$router.push(`/cars/${car.carId}`)"
       >
-        <div class="card-image">🚗</div>
+        <div class="card-image">
+          <img v-if="car.imageUrl" :src="car.imageUrl" :alt="car.brand + ' ' + car.model"
+               class="car-thumb" @error="onImageError($event)" />
+          <div v-else class="card-image-fallback">🚗</div>
+        </div>
         <div class="card-info">
           <div class="card-title">{{ car.brand }} {{ car.model }}</div>
           <div class="card-subtitle">{{ car.displacement }} · {{ car.transmission }} · {{ car.color }}</div>
@@ -65,6 +69,11 @@ async function fetchCars() {
   } finally {
     loading.value = false
   }
+}
+
+function onImageError(e) {
+  e.target.style.display = 'none'
+  e.target.parentElement.innerHTML = '<div class="card-image-fallback">🚗</div>'
 }
 
 onMounted(() => {

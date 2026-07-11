@@ -14,7 +14,11 @@
 
     <!-- 车辆详情 -->
     <div v-else-if="car" class="detail-header card">
-      <div class="detail-image">🚗</div>
+      <div class="detail-image">
+          <img v-if="car.imageUrl" :src="car.imageUrl" :alt="car.brand + ' ' + car.model"
+               class="detail-thumb" @error="onImageError($event)" />
+          <div v-else class="detail-image-fallback">🚗</div>
+        </div>
       <div class="detail-info card-body">
         <h1>{{ car.brand }} {{ car.model }}</h1>
         <div class="detail-subtitle">
@@ -108,6 +112,11 @@ async function fetchDetail() {
   } finally {
     loading.value = false
   }
+}
+
+function onImageError(e) {
+  e.target.style.display = 'none'
+  e.target.parentElement.innerHTML = '<div class="detail-image-fallback">🚗</div>'
 }
 
 onMounted(() => {
