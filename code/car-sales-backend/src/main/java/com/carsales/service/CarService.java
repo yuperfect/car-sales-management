@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +22,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 @Service
 public class CarService {
@@ -225,30 +228,37 @@ public class CarService {
     private static final String UPLOAD_DIR = System.getProperty("user.home") + "/car-sales-uploads/images";
 
     /**
-     * 启动时将旧目录（工作目录相对路径）下的图片迁移到新目录（用户主目录）
+     * 启动时将 classpath:static/images/ 下的种子图片复制到运行时目录
+     * 目标已存在的图片不覆盖（保护用户上传的图片）
      */
     @PostConstruct
     public void migrateOldImages() {
         try {
-            Path oldDir = Paths.get("uploads/images");
             Path newDir = Paths.get(UPLOAD_DIR);
-            if (Files.exists(oldDir)) {
-                Files.createDirectories(newDir);
-                try (var files = Files.list(oldDir)) {
-                    files.filter(f -> !f.getFileName().toString().equals(".gitkeep"))
-                         .forEach(f -> {
-                             try {
-                                 Path target = newDir.resolve(f.getFileName());
-                            Files.copy(f, target, StandardCopyOption.REPLACE_EXISTING);
-                             } catch (IOException e) {
-                                 System.err.println("迁移图片失败: " + f + " - " + e.getMessage());
-                             }
-                         });
+            Files.createDirectories(newDir);
+
+            Resource[] resources = new PathMatchingResourcePatternResolver()
+                    .getResources("classpath:static/images/*.jpg");
+
+            for (Resource resource : resources) {
+                try {
+                    String filename = resource.getFilename();
+                    if (filename == null || filename.equals(".gitkeep")) continue;
+                    Path target = newDir.resolve(filename);
+                    if (!Files.exists(target)) {
+                        try (InputStream is = resource.getInputStream()) {
+                            Files.copy(is, target);
+                        }
+                    }
+                } catch (IOException e) {
+                    System.err.println("迁移图片失败: " + resource.getFilename() + " - " + e.getMessage());
                 }
-                System.out.println("图片迁移完成: " + oldDir + " → " + newDir);
             }
+
+            int count = resources.length;
+            System.out.println("图片迁移完成: 共 " + count + " 张种子图片 → " + newDir);
         } catch (IOException e) {
-            System.err.println("检查旧图片目录时出错: " + e.getMessage());
+            System.err.println("图片迁移时出错: " + e.getMessage());
         }
     }
 
