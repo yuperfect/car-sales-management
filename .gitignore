@@ -38,3 +38,10 @@ createdump.exe
 # Build intermediates
 tools/bin/
 tools/obj/
+
+# AI delivery artifacts (keep local only)
+/design/
+/plan/
+/quality/
+/开发过程记录.md
+/查看对话历史.js
