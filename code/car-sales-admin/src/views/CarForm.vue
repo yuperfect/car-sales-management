@@ -81,7 +81,10 @@
           <button type="submit" class="btn btn-primary" :disabled="submitting">
             {{ submitting ? '保存中...' : '保存' }}
           </button>
-          <router-link to="/admin/cars" class="btn">取消</router-link>
+          <router-link to="/admin/cars" class="btn">返回</router-link>
+          <button v-if="isEdit" type="button" class="btn btn-danger" style="margin-left: auto;" @click="handleDelete">
+            {{ deleting ? '删除中...' : '删除此车辆' }}
+          </button>
         </div>
       </form>
     </div>
@@ -91,7 +94,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { fetchCarById, createCar, updateCar } from '../api/index.js'
+import { fetchCarById, createCar, updateCar, deleteCar } from '../api/index.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -99,6 +102,7 @@ const router = useRouter()
 const isEdit = computed(() => !route.meta.isNew)
 const carId = computed(() => route.params.id)
 const submitting = ref(false)
+const deleting = ref(false)
 const error = ref('')
 
 const fileInput = ref(null)
@@ -204,6 +208,19 @@ async function handleSubmit() {
     error.value = '保存失败：' + (e.message || '网络错误')
   } finally {
     submitting.value = false
+  }
+}
+
+async function handleDelete() {
+  if (!confirm('确定要永久删除此车辆吗？\n有关联的预约或订单将阻止删除。')) return
+  deleting.value = true
+  try {
+    await deleteCar(carId.value)
+    router.push('/admin/cars')
+  } catch (e) {
+    error.value = '删除失败：' + (e.message || '网络错误')
+  } finally {
+    deleting.value = false
   }
 }
 </script>

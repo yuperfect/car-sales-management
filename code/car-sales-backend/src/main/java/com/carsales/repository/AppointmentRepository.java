@@ -16,6 +16,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     List<Appointment> findByCustomerIdAndStatus(Integer customerId, String status);
 
+    boolean existsByCarId(Integer carId);
+
     @Query("SELECT a.carId, COUNT(a) as cnt FROM Appointment a GROUP BY a.carId ORDER BY cnt DESC")
     List<Object[]> countByCarIdGrouped();
 }

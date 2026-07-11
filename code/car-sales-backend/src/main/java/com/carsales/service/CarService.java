@@ -2,7 +2,9 @@ package com.carsales.service;
 
 import com.carsales.entity.Car;
 import com.carsales.enums.CarStatus;
+import com.carsales.repository.AppointmentRepository;
 import com.carsales.repository.CarRepository;
+import com.carsales.repository.PurchaseOrderRepository;
 import com.carsales.util.ExcelImportUtil.CarImportRow;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +26,15 @@ import java.util.Set;
 public class CarService {
 
     private final CarRepository carRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final PurchaseOrderRepository purchaseOrderRepository;
 
-    public CarService(CarRepository carRepository) {
+    public CarService(CarRepository carRepository,
+                      AppointmentRepository appointmentRepository,
+                      PurchaseOrderRepository purchaseOrderRepository) {
         this.carRepository = carRepository;
+        this.appointmentRepository = appointmentRepository;
+        this.purchaseOrderRepository = purchaseOrderRepository;
     }
 
     public List<Car> findAll() {
@@ -59,6 +67,25 @@ public class CarService {
 
     public void deleteById(Integer id) {
         carRepository.deleteById(id);
+    }
+
+    /**
+     * 删除车辆，同时检查关联的预约和订单
+     * 有关联数据时抛出异常阻止删除
+     */
+    public void deleteWithCheck(Integer id) {
+        Car car = carRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("车辆不存在，ID: " + id));
+        if (appointmentRepository.existsByCarId(id)) {
+            throw new RuntimeException("该车辆存在关联的预约数据，无法删除");
+        }
+        if (purchaseOrderRepository.existsByCarId(id)) {
+            throw new RuntimeException("该车辆存在关联的订单数据，无法删除");
+        }
+        // 删图片文件
+        deleteImageFile(car.getImageUrl());
+        // 删车辆
+        carRepository.delete(car);
     }
 
     public List<Car> findByStatus(CarStatus status) {
