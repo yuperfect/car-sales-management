@@ -239,9 +239,7 @@ public class CarService {
                          .forEach(f -> {
                              try {
                                  Path target = newDir.resolve(f.getFileName());
-                                 if (!Files.exists(target)) {
-                                     Files.copy(f, target, StandardCopyOption.REPLACE_EXISTING);
-                                 }
+                            Files.copy(f, target, StandardCopyOption.REPLACE_EXISTING);
                              } catch (IOException e) {
                                  System.err.println("迁移图片失败: " + f + " - " + e.getMessage());
                              }
