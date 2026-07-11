@@ -9,6 +9,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,6 +50,8 @@ public class CarController {
                 .orElse(ApiResponse.error("Car not found with id: " + id));
     }
 
+    // ======== JSON 格式端点（向后兼容，Excel导入等使用） ========
+
     @PostMapping
     public ApiResponse<Car> create(@RequestBody Car car) {
         try {
@@ -62,6 +65,31 @@ public class CarController {
     public ApiResponse<Car> update(@PathVariable Integer id, @RequestBody Car car) {
         try {
             return ApiResponse.success(carService.update(id, car));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    // ======== multipart/form-data 端点（支持图片上传） ========
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Car> createWithImage(
+            @RequestPart("car") Car car,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+        try {
+            return ApiResponse.success(carService.save(car, image));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Car> updateWithImage(
+            @PathVariable Integer id,
+            @RequestPart("car") Car car,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+        try {
+            return ApiResponse.success(carService.update(id, car, image));
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
         }

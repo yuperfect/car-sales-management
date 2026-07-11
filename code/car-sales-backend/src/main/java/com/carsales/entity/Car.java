@@ -49,6 +49,9 @@ public class Car {
     @Column(name = "status", nullable = false, length = 10)
     private CarStatus status = CarStatus.on_sale;
 
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     @PrePersist
     protected void onCreate() {
         this.listedTime = LocalDateTime.now();

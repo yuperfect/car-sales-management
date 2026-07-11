@@ -5,10 +5,17 @@ import com.carsales.enums.CarStatus;
 import com.carsales.repository.CarRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class CarService {
@@ -86,5 +93,133 @@ public class CarService {
     @Transactional
     public void saveAll(List<Car> cars) {
         carRepository.saveAll(cars);
+    }
+
+    // ========== Image-aware overloaded methods ==========
+
+    /**
+     * 保存车辆（含可选图片）
+     * 如果 imageFile 非空，保存图片到 uploads/images/{carId}.{ext} 并设置 imageUrl
+     */
+    public Car save(Car car, MultipartFile imageFile) {
+        // 先保存车辆以获取自增 ID
+        Car savedCar = carRepository.save(car);
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            validateImageFile(imageFile);
+            String imageUrl = saveImageFile(savedCar.getCarId(), imageFile);
+            savedCar.setImageUrl(imageUrl);
+            savedCar = carRepository.save(savedCar);
+        }
+
+        return savedCar;
+    }
+
+    /**
+     * 更新车辆（含可选图片处理）
+     * - imageFile == null：保持原有图片不变
+     * - imageFile 非空但不为空：替换为新图
+     * - imageFile 非但 isEmpty()==true：移图（image_url 置 NULL，删除文件）
+     */
+    public Car update(Integer id, Car updated, MultipartFile imageFile) {
+        return carRepository.findById(id).map(car -> {
+            // 更新文本字段
+            if (updated.getBrand() != null) car.setBrand(updated.getBrand());
+            if (updated.getModel() != null) car.setModel(updated.getModel());
+            if (updated.getDisplacement() != null) car.setDisplacement(updated.getDisplacement());
+            if (updated.getTransmission() != null) car.setTransmission(updated.getTransmission());
+            if (updated.getColor() != null) car.setColor(updated.getColor());
+            if (updated.getPrice() != null) car.setPrice(updated.getPrice());
+            if (updated.getStock() != null) car.setStock(updated.getStock());
+            if (updated.getStatus() != null) car.setStatus(updated.getStatus());
+
+            // 图片处理
+            if (imageFile != null) {
+                if (imageFile.isEmpty()) {
+                    // 显式传空文件 → 移除图片
+                    deleteImageFile(car.getImageUrl());
+                    car.setImageUrl(null);
+                } else {
+                    // 上传新图片 → 替换旧图
+                    validateImageFile(imageFile);
+                    deleteImageFile(car.getImageUrl());
+                    String imageUrl = saveImageFile(car.getCarId(), imageFile);
+                    car.setImageUrl(imageUrl);
+                }
+            }
+            // imageFile == null → 不处理图片，保持原样
+
+            return carRepository.save(car);
+        }).orElseThrow(() -> new RuntimeException("Car not found with id: " + id));
+    }
+
+    // ========== Private image helpers ==========
+
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
+    private static final String UPLOAD_DIR = "uploads/images";
+
+    /**
+     * 校验图片文件格式
+     */
+    private void validateImageFile(MultipartFile imageFile) {
+        if (imageFile == null || imageFile.isEmpty()) {
+            return;
+        }
+        String ext = getExtension(imageFile);
+        if (!ALLOWED_EXTENSIONS.contains(ext)) {
+            throw new IllegalArgumentException("仅支持 JPG/PNG/WebP 格式的图片，当前格式: " + ext);
+        }
+    }
+
+    /**
+     * 保存图片文件到 uploads/images/{carId}.{ext}
+     * 返回可公开访问的相对路径 /uploads/images/{filename}
+     */
+    private String saveImageFile(Integer carId, MultipartFile imageFile) {
+        String ext = getExtension(imageFile);
+        String filename = carId + "." + ext;
+
+        try {
+            Path uploadDir = Paths.get(UPLOAD_DIR);
+            Files.createDirectories(uploadDir);
+            Path filePath = uploadDir.resolve(filename);
+            Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            return "/" + UPLOAD_DIR + "/" + filename;
+        } catch (IOException e) {
+            throw new RuntimeException("图片保存失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 删除图片文件
+     */
+    private void deleteImageFile(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return;
+        }
+        try {
+            String relativePath = imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl;
+            Path filePath = Paths.get(relativePath);
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            // 文件删除为最佳尝试，不阻塞主流程
+            System.err.println("图片文件删除失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 从 MultipartFile 中提取扩展名（小写）
+     * 无法获取扩展名时默认返回 "jpg"
+     */
+    private String getExtension(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isEmpty()) {
+            return "jpg";
+        }
+        int dotIndex = originalFilename.lastIndexOf('.');
+        if (dotIndex < 0 || dotIndex == originalFilename.length() - 1) {
+            return "jpg";
+        }
+        return originalFilename.substring(dotIndex + 1).toLowerCase();
     }
 }

@@ -46,6 +46,9 @@ CREATE TABLE car (
     CONSTRAINT chk_car_stock CHECK (stock >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆表';
 
+-- 车辆表：新增图片列（DDL migration for STORY-IMG-01）
+ALTER TABLE car ADD COLUMN image_url VARCHAR(500) DEFAULT NULL COMMENT '图片URL' AFTER status;
+
 -- ============================================
 -- 3. 预约表 (appointment)
 -- ============================================
