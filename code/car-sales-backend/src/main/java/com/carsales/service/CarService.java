@@ -3,6 +3,7 @@ package com.carsales.service;
 import com.carsales.entity.Car;
 import com.carsales.enums.CarStatus;
 import com.carsales.repository.CarRepository;
+import com.carsales.util.ExcelImportUtil.CarImportRow;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -95,6 +96,44 @@ public class CarService {
     @Transactional
     public void saveAll(List<Car> cars) {
         carRepository.saveAll(cars);
+    }
+
+    /**
+     * 批量保存车辆（含可选的嵌入图片）
+     * 逐条保存（需要自增 ID 来命名图片文件）
+     *
+     * @return 成功保存的数量
+     */
+    @Transactional
+    public int saveAllWithImages(List<CarImportRow> rows) {
+        int saved = 0;
+        for (CarImportRow row : rows) {
+            try {
+                Car car = row.getCar();
+                if (car.getBrand() == null || car.getBrand().isBlank()) continue;
+
+                if (row.hasImage()) {
+                    // 先保存车，拿到 ID
+                    Car savedCar = carRepository.save(car);
+                    // 存图片
+                    String ext = row.getImageExtension();
+                    if (!ALLOWED_EXTENSIONS.contains(ext)) {
+                        ext = "jpg";
+                    }
+                    String filename = savedCar.getCarId() + "." + ext;
+                    String imageUrl = saveImageBytes(savedCar.getCarId(), row.getImageData(), ext);
+                    savedCar.setImageUrl(imageUrl);
+                    carRepository.save(savedCar);
+                } else {
+                    carRepository.save(car);
+                }
+                saved++;
+            } catch (Exception e) {
+                System.err.println("导入车辆图片失败（跳过）: " + e.getMessage());
+                // 跳过失败的图片，继续下一辆
+            }
+        }
+        return saved;
     }
 
     // ========== Image-aware overloaded methods ==========
@@ -216,6 +255,23 @@ public class CarService {
             Files.createDirectories(uploadDir);
             Path filePath = uploadDir.resolve(filename);
             Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            return "/images/" + filename;
+        } catch (IOException e) {
+            throw new RuntimeException("图片保存失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 保存图片二进制数据到 uploads/images/{carId}.{ext}
+     * 用于 Excel 导入时嵌入的图片
+     */
+    private String saveImageBytes(Integer carId, byte[] imageData, String ext) {
+        String filename = carId + "." + ext;
+        try {
+            Path uploadDir = Paths.get(UPLOAD_DIR);
+            Files.createDirectories(uploadDir);
+            Path filePath = uploadDir.resolve(filename);
+            Files.write(filePath, imageData);
             return "/images/" + filename;
         } catch (IOException e) {
             throw new RuntimeException("图片保存失败: " + e.getMessage(), e);

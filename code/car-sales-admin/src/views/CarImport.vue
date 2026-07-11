@@ -3,8 +3,11 @@
     <div class="card">
       <div class="card-header">Excel 导入车辆</div>
 
-      <p style="color: #666; margin-bottom: 20px;">
-        上传 .xlsx 文件，批量导入车辆信息。文件需包含：品牌、车型、排量、变速箱、颜色、价格、库存等列。
+      <p style="color: #666; margin-bottom: 12px;">
+        上传 .xlsx 文件，批量导入车辆信息。文件需包含：品牌、车型、排量、变速箱、颜色、价格、库存、车辆图片等列。
+      </p>
+      <p style="color: #999; font-size: 13px; margin-bottom: 20px;">
+        💡 如需为车辆配图，请将图片直接插入到 Excel 的"车辆图片"列对应行的单元格位置。
       </p>
 
       <!-- Download Template -->
@@ -46,12 +49,15 @@
       <div v-if="error" class="error-msg" style="margin-top: 16px;">{{ error }}</div>
 
       <!-- Import Result -->
-      <div v-if="result" class="import-result" :class="result.success >= 0 ? 'success' : 'error'">
+      <div v-if="result" class="import-result" :class="result.success > 0 ? 'success' : 'error'">
         <div style="font-size: 20px; margin-bottom: 8px;">
-          {{ result.success >= 0 ? '✅ 导入完成' : '❌ 导入失败' }}
+          {{ result.success > 0 ? '✅ 导入完成' : '❌ 导入失败' }}
         </div>
-        <div v-if="result.success >= 0">
-          成功：{{ result.success }} 条 &nbsp;&nbsp; 失败：{{ result.fail }} 条
+        <div v-if="result.success > 0">
+          成功：{{ result.success }} / {{ result.total }} 条
+          <span v-if="result.withImage > 0" style="margin-left: 12px; color: #1890ff;">
+            🖼️ 含图片：{{ result.withImage }} 辆
+          </span>
         </div>
         <div v-if="result.message" style="margin-top: 8px; font-size: 13px;">
           {{ result.message }}

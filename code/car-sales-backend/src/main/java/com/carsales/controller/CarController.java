@@ -4,7 +4,11 @@ import com.carsales.dto.ApiResponse;
 import com.carsales.entity.Car;
 import com.carsales.service.CarService;
 import com.carsales.util.ExcelImportUtil;
+import com.carsales.util.ExcelImportUtil.CarImportRow;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -113,25 +117,56 @@ public class CarController {
 
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("车辆数据");
-            String[] headers = {"品牌", "车型", "排量", "变速箱", "颜色", "价格", "库存"};
+            String[] headers = {"品牌", "车型", "排量", "变速箱", "颜色", "价格", "库存", "车辆图片"};
             Row headerRow = sheet.createRow(0);
             for (int i = 0; i < headers.length; i++) {
                 headerRow.createCell(i).setCellValue(headers[i]);
                 sheet.autoSizeColumn(i);
             }
+            // 第二行插入使用说明
+            Row noteRow = sheet.createRow(1);
+            Cell noteCell = noteRow.createCell(7);
+            noteCell.setCellValue("请将车辆图片插入此列对应行的单元格位置");
+            CellStyle noteStyle = workbook.createCellStyle();
+            noteStyle.setFont(workbook.getFontAt(0));
+            noteCell.setCellStyle(noteStyle);
+
             workbook.write(response.getOutputStream());
             response.getOutputStream().flush();
         }
     }
 
     @PostMapping("/import")
-    public ApiResponse<String> importExcel(@RequestParam("file") MultipartFile file) {
+    public ApiResponse<Map<String, Object>> importExcel(@RequestParam("file") MultipartFile file) {
         try {
-            List<Car> cars = ExcelImportUtil.parseCars(file);
-            carService.saveAll(cars);
-            return ApiResponse.success("Successfully imported " + cars.size() + " cars");
+            // 先尝试按含图片的格式解析
+            List<CarImportRow> rows = ExcelImportUtil.parseCarsWithImages(file);
+            int saved = carService.saveAllWithImages(rows);
+
+            int withImage = (int) rows.stream().filter(CarImportRow::hasImage).count();
+            int totalCars = rows.size();
+
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("success", saved);
+            result.put("total", totalCars);
+            result.put("withImage", withImage);
+            result.put("message", "成功导入 " + saved + "/" + totalCars + " 辆车" +
+                    (withImage > 0 ? "，其中 " + withImage + " 辆含图片" : ""));
+            return ApiResponse.success(result);
         } catch (Exception e) {
-            return ApiResponse.error("Import failed: " + e.getMessage());
+            // 回退到旧版解析（不含图片）
+            try {
+                List<Car> cars = ExcelImportUtil.parseCars(file);
+                carService.saveAll(cars);
+                Map<String, Object> result = new java.util.HashMap<>();
+                result.put("success", cars.size());
+                result.put("total", cars.size());
+                result.put("withImage", 0);
+                result.put("message", "成功导入 " + cars.size() + " 辆车");
+                return ApiResponse.success(result);
+            } catch (Exception e2) {
+                return ApiResponse.error("导入失败: " + e2.getMessage());
+            }
         }
     }
 }
