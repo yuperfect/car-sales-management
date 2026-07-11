@@ -153,12 +153,17 @@ function statusClass(status) {
 }
 .data-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   background: #fff;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
+.data-table th:nth-child(1) { width: 18%; }
+.data-table th:nth-child(2) { width: 32%; }
+.data-table th:nth-child(3) { width: 30%; }
+.data-table th:nth-child(4) { width: 20%; }
 .data-table th {
   background: #f5f7fa;
   color: #666;
