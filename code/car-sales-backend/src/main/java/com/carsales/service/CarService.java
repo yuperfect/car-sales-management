@@ -184,7 +184,7 @@ public class CarService {
             Files.createDirectories(uploadDir);
             Path filePath = uploadDir.resolve(filename);
             Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            return "/" + UPLOAD_DIR + "/" + filename;
+            return "/images/" + filename;
         } catch (IOException e) {
             throw new RuntimeException("图片保存失败: " + e.getMessage(), e);
         }
@@ -198,8 +198,9 @@ public class CarService {
             return;
         }
         try {
-            String relativePath = imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl;
-            Path filePath = Paths.get(relativePath);
+            // imageUrl 格式: /images/{filename} → 实际路径: uploads/images/{filename}
+            String filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+            Path filePath = Paths.get(UPLOAD_DIR, filename);
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
             // 文件删除为最佳尝试，不阻塞主流程
