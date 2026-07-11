@@ -37,7 +37,7 @@ SELECT * FROM (
 WHERE (SELECT COUNT(*) FROM car) = 0;
 
 -- ============================================
--- 3. 预约数据（仅在 car 表为空时插入，与种子车辆绑定）
+-- 3. 预约数据（仅在预约表为空时插入）
 -- ============================================
 INSERT INTO appointment (customer_id, car_id, appointment_time, status, create_time, handle_time, handler, remark)
 SELECT * FROM (
@@ -51,10 +51,10 @@ SELECT * FROM (
   UNION ALL
   SELECT 2, 7, '2026-07-25 11:00:00', 'pending',   '2026-07-19 09:30:00', NULL, NULL, NULL
 ) tmp
-WHERE (SELECT COUNT(*) FROM car) = 0;
+WHERE (SELECT COUNT(*) FROM appointment) = 0;
 
 -- ============================================
--- 4. 订单数据（仅在 car 表为空时插入，与种子车辆绑定）
+-- 4. 订单数据（仅在订单表为空时插入）
 -- ============================================
 INSERT INTO purchase_order (customer_id, car_id, quantity, unit_price, total_amount, order_time, status, handle_time, handler)
 SELECT * FROM (
@@ -68,4 +68,4 @@ SELECT * FROM (
   UNION ALL
   SELECT 2, 7, 1, 209800.00, 209800.00, '2026-07-19 16:00:00', 'pending', NULL, NULL
 ) tmp
-WHERE (SELECT COUNT(*) FROM car) = 0;
+WHERE (SELECT COUNT(*) FROM purchase_order) = 0;
