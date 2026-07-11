@@ -104,7 +104,7 @@ public class CarController {
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Integer id) {
         try {
-            carService.deleteWithCheck(id);
+            carService.deleteCascading(id);
             return ApiResponse.success(null);
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());

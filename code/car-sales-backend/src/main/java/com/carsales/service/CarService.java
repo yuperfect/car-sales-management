@@ -70,18 +70,16 @@ public class CarService {
     }
 
     /**
-     * 删除车辆，同时检查关联的预约和订单
-     * 有关联数据时抛出异常阻止删除
+     * 级联删除车辆：先删关联的预约和订单，再删图片文件和车辆本身
      */
-    public void deleteWithCheck(Integer id) {
+    @Transactional
+    public void deleteCascading(Integer id) {
         Car car = carRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("车辆不存在，ID: " + id));
-        if (appointmentRepository.existsByCarId(id)) {
-            throw new RuntimeException("该车辆存在关联的预约数据，无法删除");
-        }
-        if (purchaseOrderRepository.existsByCarId(id)) {
-            throw new RuntimeException("该车辆存在关联的订单数据，无法删除");
-        }
+        // 删关联预约
+        appointmentRepository.deleteByCarId(id);
+        // 删关联订单
+        purchaseOrderRepository.deleteByCarId(id);
         // 删图片文件
         deleteImageFile(car.getImageUrl());
         // 删车辆

@@ -22,6 +22,8 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, In
 
     boolean existsByCarId(Integer carId);
 
+    void deleteByCarId(Integer carId);
+
     @Query("SELECT o.carId, SUM(o.quantity) as totalQty FROM PurchaseOrder o " +
            "WHERE o.status = 'confirmed' GROUP BY o.carId ORDER BY totalQty DESC")
     List<Object[]> countSalesByCarIdGrouped();
