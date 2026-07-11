@@ -42,12 +42,10 @@ CREATE TABLE car (
     stock INT NOT NULL DEFAULT 0 COMMENT '库存',
     listed_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上架时间',
     status VARCHAR(10) NOT NULL DEFAULT 'on_sale' COMMENT '状态：on_sale在售 / sold_out停售',
+    image_url VARCHAR(500) DEFAULT NULL COMMENT '车辆图片URL',
     CONSTRAINT chk_car_price CHECK (price > 0),
     CONSTRAINT chk_car_stock CHECK (stock >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆表';
-
--- 车辆表：新增图片列（DDL migration for STORY-IMG-01）
-ALTER TABLE car ADD COLUMN image_url VARCHAR(500) DEFAULT NULL COMMENT '图片URL' AFTER status;
 
 -- ============================================
 -- 3. 预约表 (appointment)
