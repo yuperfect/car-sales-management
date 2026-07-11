@@ -68,9 +68,12 @@
           <button v-if="car.stock > 0" class="btn btn-primary btn-lg" @click="goAppointment">
             📅 预约试驾
           </button>
-          <button class="btn btn-success btn-lg" @click="goOrder">
+          <button v-if="car.stock > 0" class="btn btn-success btn-lg" @click="goOrder">
             🛒 立即购买
           </button>
+          <div v-else style="margin-top: 8px; color: var(--danger); font-weight: 500;">
+            该车型已售罄
+          </div>
         </div>
       </div>
     </div>

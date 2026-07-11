@@ -102,7 +102,7 @@ const router = useRouter()
 
 const cars = ref([])
 const submitting = ref(false)
-const onSaleCars = computed(() => cars.value.filter(c => c.status === 'on_sale'))
+const onSaleCars = computed(() => cars.value.filter(c => c.status === 'on_sale' && c.stock > 0))
 const successMsg = ref('')
 const errMsg = ref('')
 
