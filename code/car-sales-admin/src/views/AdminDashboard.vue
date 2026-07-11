@@ -24,52 +24,54 @@
     <div v-if="loading" class="loading">加载中...</div>
     <div v-else-if="error" class="error-msg">{{ error }}</div>
 
-    <!-- 最近预约 -->
-    <div v-else class="section">
-      <div class="card-header">最近预约</div>
-      <table class="data-table" v-if="recentAppointments.length > 0">
-        <thead>
-          <tr>
-            <th>客户</th>
-            <th>车型</th>
-            <th>预约时间</th>
-            <th>状态</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in recentAppointments" :key="item.appointmentId">
-            <td>{{ item.customerName }}</td>
-            <td>{{ item.carBrand }} {{ item.carModel }}</td>
-            <td>{{ formatDate(item.appointmentTime) }}</td>
-            <td><span :class="statusClass(item.status)">{{ statusText(item.status) }}</span></td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-else class="empty-tip">暂无预约数据</div>
-    </div>
+    <div v-else>
+      <!-- 最近预约 -->
+      <div class="section">
+        <div class="card-header">最近预约</div>
+        <table class="data-table" v-if="recentAppointments.length > 0">
+          <thead>
+            <tr>
+              <th>客户</th>
+              <th>车型</th>
+              <th>预约时间</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in recentAppointments" :key="item.appointmentId">
+              <td>{{ item.customerName }}</td>
+              <td>{{ item.carBrand }} {{ item.carModel }}</td>
+              <td>{{ formatDate(item.appointmentTime) }}</td>
+              <td><span :class="statusClass(item.status)">{{ statusText(item.status) }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-else class="empty-tip">暂无预约数据</div>
+      </div>
 
-    <!-- 最近订单 -->
-    <div v-else class="section">
-      <div class="card-header">最近订单</div>
-      <table class="data-table" v-if="recentOrders.length > 0">
-        <thead>
-          <tr>
-            <th>客户</th>
-            <th>车型</th>
-            <th>金额</th>
-            <th>状态</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in recentOrders" :key="item.orderId">
-            <td>{{ item.customerName }}</td>
-            <td>{{ item.carBrand }} {{ item.carModel }}</td>
-            <td>{{ formatPrice(item.totalAmount) }}</td>
-            <td><span :class="statusClass(item.status)">{{ statusText(item.status) }}</span></td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-else class="empty-tip">暂无订单数据</div>
+      <!-- 最近订单 -->
+      <div class="section">
+        <div class="card-header">最近订单</div>
+        <table class="data-table" v-if="recentOrders.length > 0">
+          <thead>
+            <tr>
+              <th>客户</th>
+              <th>车型</th>
+              <th>金额</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in recentOrders" :key="item.orderId">
+              <td>{{ item.customerName }}</td>
+              <td>{{ item.carBrand }} {{ item.carModel }}</td>
+              <td>{{ formatPrice(item.totalAmount) }}</td>
+              <td><span :class="statusClass(item.status)">{{ statusText(item.status) }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-else class="empty-tip">暂无订单数据</div>
+      </div>
     </div>
   </div>
 </template>
