@@ -65,7 +65,7 @@
         </div>
 
         <div class="detail-actions">
-          <button class="btn btn-primary btn-lg" @click="goAppointment">
+          <button v-if="car.stock > 0" class="btn btn-primary btn-lg" @click="goAppointment">
             📅 预约试驾
           </button>
           <button class="btn btn-success btn-lg" @click="goOrder">
