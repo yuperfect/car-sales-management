@@ -111,9 +111,9 @@ See `workspace/car-sales-management/plan/MS-IMG-01/sprint-01/sprint-backlog.md`
 
 | Story | Commit Hash | Commit Message |
 |-------|-------------|---------|
-| STORY-IMG-01 | | |
-| STORY-IMG-02 | | |
-| STORY-IMG-03 | | |
+| STORY-IMG-01 | `9833341` | `feat: STORY-IMG-01 - 后端：数据库加图片列 + 文件上传接口` |
+| STORY-IMG-02 | `4dc31d4` | `feat: STORY-IMG-02 - 管理端：车辆新增/编辑表单支持图片上传与展示` |
+| STORY-IMG-03 | `f04089e` | `feat: STORY-IMG-03 - 客户端：在售车辆列表和详情页展示真实图片` |
 
 ## Human Confirmation
 - Sprint Backlog Confirmation: ✅ 用户确认开始
