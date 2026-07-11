@@ -2,7 +2,9 @@
 
 ## 1.系统说明
 
-此系统是为了完成xauat信息系统课设而创建，使用vue+spring boot框架
+- 此系统是为了完成xauat信息系统课设而创建，使用vue+spring boot框架
+
+- 适配的操作系统Windows11/10
 
 ## 2.操作说明
 

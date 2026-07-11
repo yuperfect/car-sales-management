@@ -34,4 +34,4 @@ spring:
 
   web:
     resources:
-      static-locations: classpath:/static/,file:uploads/
+      static-locations: classpath:/static/,file:${user.home}/car-sales-uploads/

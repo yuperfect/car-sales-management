@@ -118,18 +118,19 @@ async function loadData(tab) {
         fetchSalesShareStats(),
         fetchPriceRangeStats()
       ])
+      loading.value = false
       await nextTick()
       if (salesData) renderSalesChart(salesData)
       if (shareData) renderShareChart(shareData)
       if (priceRangeData) renderPriceRangeChart(priceRangeData)
     } else if (tab === 'appointment') {
       const appointmentData = await fetchAppointmentHotStats()
+      loading.value = false
       await nextTick()
       if (appointmentData) renderAppointmentChart(appointmentData)
     }
   } catch (e) {
     error.value = '获取统计数据失败：' + (e.message || '网络错误')
-  } finally {
     loading.value = false
   }
 }
