@@ -146,6 +146,8 @@ async function uploadFile() {
     const data = await importCars(formData)
     result.value = {
       success: data.success ?? 0,
+      total: data.total ?? 0,
+      withImage: data.withImage ?? 0,
       fail: data.fail ?? 0,
       message: data.message || ''
     }
