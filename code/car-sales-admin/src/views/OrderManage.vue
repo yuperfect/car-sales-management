@@ -57,7 +57,7 @@
                   {{ processingId === item.orderId ? '确认中...' : '确认' }}
                 </button>
                 <button class="btn btn-sm btn-danger" :disabled="processingId === item.orderId" @click="handleCancel(item.orderId)">
-                  {{ processingId === item.orderId ? '拒绝中...' : '拒绝' }}
+                  {{ processingId === item.orderId ? '取消中...' : '取消' }}
                 </button>
               </td>
               <td v-else>
@@ -159,13 +159,13 @@ async function handleConfirm() {
 }
 
 async function handleCancel(id) {
-  if (!confirm('确定要拒绝该订单吗？')) return
+  if (!confirm('确定要取消该订单吗？')) return
   processingId.value = id
   try {
     await cancelOrder(id)
     list.value = list.value.filter(item => item.orderId !== id)
   } catch (e) {
-    alert('拒绝失败：' + (e.message || '网络错误'))
+    alert('取消失败：' + (e.message || '网络错误'))
   } finally {
     processingId.value = null
   }

@@ -36,7 +36,7 @@ public class OrderController {
     public ApiResponse<PurchaseOrder> findById(@PathVariable Integer id) {
         return orderService.findById(id)
                 .map(ApiResponse::success)
-                .orElse(ApiResponse.error("Order not found with id: " + id));
+                .orElse(ApiResponse.error("订单不存在，ID: " + id));
     }
 
     @PostMapping

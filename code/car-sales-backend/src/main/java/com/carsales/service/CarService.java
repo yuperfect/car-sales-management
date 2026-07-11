@@ -62,7 +62,7 @@ public class CarService {
             if (updated.getStatus() != null) car.setStatus(updated.getStatus());
             if (updated.getListedTime() != null) car.setListedTime(updated.getListedTime());
             return carRepository.save(car);
-        }).orElseThrow(() -> new RuntimeException("Car not found with id: " + id));
+        }).orElseThrow(() -> new RuntimeException("车辆不存在，ID: " + id));
     }
 
     public void deleteById(Integer id) {
@@ -216,7 +216,7 @@ public class CarService {
             // imageFile == null → 不处理图片，保持原样
 
             return carRepository.save(car);
-        }).orElseThrow(() -> new RuntimeException("Car not found with id: " + id));
+        }).orElseThrow(() -> new RuntimeException("车辆不存在，ID: " + id));
     }
 
     // ========== Private image helpers ==========

@@ -36,7 +36,7 @@ public class AppointmentController {
     public ApiResponse<Appointment> findById(@PathVariable Integer id) {
         return appointmentService.findById(id)
                 .map(ApiResponse::success)
-                .orElse(ApiResponse.error("Appointment not found with id: " + id));
+                .orElse(ApiResponse.error("预约不存在，ID: " + id));
     }
 
     @PostMapping

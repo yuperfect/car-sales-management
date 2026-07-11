@@ -64,10 +64,10 @@ public class OrderService {
 
         // validate car exists and has enough stock
         Car car = carRepository.findById(carId)
-                .orElseThrow(() -> new RuntimeException("Car not found with id: " + carId));
+                .orElseThrow(() -> new RuntimeException("车辆不存在，ID: " + carId));
 
         if (car.getStock() < quantity) {
-            throw new RuntimeException("Insufficient stock: available " + car.getStock() + ", requested " + quantity);
+            throw new RuntimeException("库存不足：当前库存 " + car.getStock() + "，需要 " + quantity);
         }
 
         PurchaseOrder order = new PurchaseOrder();
@@ -84,14 +84,14 @@ public class OrderService {
     public PurchaseOrder confirm(Integer id, String handler) {
         return purchaseOrderRepository.findById(id).map(order -> {
             if (order.getStatus() != OrderStatus.pending) {
-                throw new RuntimeException("Only pending order can be confirmed");
+                throw new RuntimeException("仅待确认订单可以确认");
             }
 
             // check stock again before confirming
             Car car = carRepository.findById(order.getCar().getCarId())
-                    .orElseThrow(() -> new RuntimeException("Car not found with id: " + order.getCar().getCarId()));
+                    .orElseThrow(() -> new RuntimeException("车辆不存在，ID: " + order.getCar().getCarId()));
             if (car.getStock() < order.getQuantity()) {
-                throw new RuntimeException("Insufficient stock to confirm order");
+                throw new RuntimeException("库存不足，无法确认订单");
             }
 
             // deduct stock
@@ -102,20 +102,20 @@ public class OrderService {
             order.setHandleTime(LocalDateTime.now());
             order.setHandler(handler);
             return purchaseOrderRepository.save(order);
-        }).orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+        }).orElseThrow(() -> new RuntimeException("订单不存在，ID: " + id));
     }
 
     @Transactional
     public PurchaseOrder cancel(Integer id) {
         return purchaseOrderRepository.findById(id).map(order -> {
             if (order.getStatus() == OrderStatus.cancelled) {
-                throw new RuntimeException("Order is already cancelled");
+                throw new RuntimeException("订单已取消，无需重复操作");
             }
 
             // restore stock if was confirmed
             if (order.getStatus() == OrderStatus.confirmed) {
                 Car car = carRepository.findById(order.getCar().getCarId())
-                        .orElseThrow(() -> new RuntimeException("Car not found with id: " + order.getCar().getCarId()));
+                        .orElseThrow(() -> new RuntimeException("车辆不存在，ID: " + order.getCar().getCarId()));
                 car.setStock(car.getStock() + order.getQuantity());
                 carRepository.save(car);
             }
@@ -123,15 +123,15 @@ public class OrderService {
             order.setStatus(OrderStatus.cancelled);
             order.setHandleTime(LocalDateTime.now());
             return purchaseOrderRepository.save(order);
-        }).orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+        }).orElseThrow(() -> new RuntimeException("订单不存在，ID: " + id));
     }
 
     @Transactional
     public void deleteById(Integer id) {
         PurchaseOrder order = purchaseOrderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("订单不存在，ID: " + id));
         if (order.getStatus() != OrderStatus.pending) {
-            throw new RuntimeException("Only pending order can be deleted");
+            throw new RuntimeException("仅待确认订单可以删除");
         }
         purchaseOrderRepository.deleteById(id);
     }

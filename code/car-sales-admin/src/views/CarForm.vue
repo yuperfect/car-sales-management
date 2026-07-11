@@ -212,7 +212,7 @@ async function handleSubmit() {
 }
 
 async function handleDelete() {
-  if (!confirm('确定要永久删除此车辆吗？\n有关联的预约或订单将阻止删除。')) return
+  if (!confirm('确定要永久删除此车辆吗？\n关联的预约和订单也会被一并删除。')) return
   deleting.value = true
   try {
     await deleteCar(carId.value)

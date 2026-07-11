@@ -53,7 +53,7 @@ public class CarController {
     public ApiResponse<Car> findById(@PathVariable Integer id) {
         return carService.findById(id)
                 .map(ApiResponse::success)
-                .orElse(ApiResponse.error("Car not found with id: " + id));
+                .orElse(ApiResponse.error("车辆不存在，ID: " + id));
     }
 
     // ======== JSON 格式端点（向后兼容，Excel导入等使用） ========

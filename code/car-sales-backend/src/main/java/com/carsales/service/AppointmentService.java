@@ -61,7 +61,7 @@ public class AppointmentService {
                 });
 
         Car car = carRepository.findById(carId)
-                .orElseThrow(() -> new RuntimeException("Car not found with id: " + carId));
+                .orElseThrow(() -> new RuntimeException("车辆不存在，ID: " + carId));
 
         if (car.getStock() <= 0) {
             throw new RuntimeException("该车辆已售罄，暂不可预约");
@@ -80,25 +80,25 @@ public class AppointmentService {
     public Appointment confirm(Integer id, String handler) {
         return appointmentRepository.findById(id).map(apt -> {
             if (!"pending".equals(apt.getStatus())) {
-                throw new RuntimeException("Only pending appointment can be confirmed");
+                throw new RuntimeException("仅待确认预约可以确认");
             }
             apt.setStatus("confirmed");
             apt.setHandleTime(LocalDateTime.now());
             apt.setHandler(handler);
             return appointmentRepository.save(apt);
-        }).orElseThrow(() -> new RuntimeException("Appointment not found with id: " + id));
+        }).orElseThrow(() -> new RuntimeException("预约不存在，ID: " + id));
     }
 
     @Transactional
     public Appointment cancel(Integer id) {
         return appointmentRepository.findById(id).map(apt -> {
             if ("cancelled".equals(apt.getStatus())) {
-                throw new RuntimeException("Appointment is already cancelled");
+                throw new RuntimeException("预约已取消，无需重复操作");
             }
             apt.setStatus("cancelled");
             apt.setHandleTime(LocalDateTime.now());
             return appointmentRepository.save(apt);
-        }).orElseThrow(() -> new RuntimeException("Appointment not found with id: " + id));
+        }).orElseThrow(() -> new RuntimeException("预约不存在，ID: " + id));
     }
 
     public List<Object[]> getAppointmentHotStats() {
