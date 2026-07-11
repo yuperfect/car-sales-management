@@ -35,6 +35,7 @@
           <thead>
             <tr>
               <th>ID</th>
+              <th>图片</th>
               <th>品牌</th>
               <th>车型</th>
               <th>排量</th>
@@ -50,6 +51,10 @@
           <tbody>
             <tr v-for="car in cars" :key="car.carId">
               <td>{{ car.carId }}</td>
+              <td>
+                <img v-if="car.imageUrl" :src="car.imageUrl" class="car-thumb" />
+                <span v-else class="no-image">无</span>
+              </td>
               <td>{{ car.brand }}</td>
               <td>{{ car.model }}</td>
               <td>{{ car.displacement || '-' }}</td>
@@ -81,7 +86,7 @@
               </td>
             </tr>
             <tr v-if="cars.length === 0">
-              <td colspan="11" style="text-align: center; color: #999;">暂无数据</td>
+              <td colspan="12" style="text-align: center; color: #999;">暂无数据</td>
             </tr>
           </tbody>
         </table>
@@ -146,3 +151,17 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('zh-CN')
 }
 </script>
+
+<style scoped>
+.car-thumb {
+  width: 60px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #eee;
+}
+.no-image {
+  color: #ccc;
+  font-size: 12px;
+}
+</style>
