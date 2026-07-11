@@ -19,4 +19,7 @@
 | - | emoji 在 CMD 中显示问号 | 替换为纯文本 [OK]/[FAIL]/[..] | ✅ 已修复 |
 | - | 启动倒计时端口轮询检查 | 实现端口轮询 + 倒计时显示 | ✅ 已修复 |
 
+| - | 图片上传 415 Unsupported Media Type | JSON端点加consumes约束 | ✅ 已修复 |
+| - | 图片上传 413 Request Entity Too Large | Tomcat max-http-form-post-size 从2MB加到10MB | ✅ 已修复 |
+
 > 所有已知 Bug 已在开发过程中修复，当前无未解决的 Bug。
