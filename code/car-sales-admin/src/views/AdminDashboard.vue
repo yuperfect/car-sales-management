@@ -57,7 +57,7 @@
             <tr>
               <th>客户</th>
               <th>车型</th>
-              <th>金额</th>
+              <th>订单金额</th>
               <th>状态</th>
             </tr>
           </thead>
