@@ -9,8 +9,6 @@ import org.apache.poi.xssf.usermodel.XSSFPicture;
 import org.apache.poi.xssf.usermodel.XSSFShape;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -63,11 +61,11 @@ public class ExcelImportUtil {
     }
 
     /**
-     * 解析 Excel 文件（不含图片），向后兼容
+     * 解析 Excel 文件（不含图片）— InputStream 版本
      */
-    public static List<Car> parseCars(MultipartFile file) throws IOException {
+    public static List<Car> parseCars(InputStream inputStream) throws IOException {
         List<Car> cars = new ArrayList<>();
-        try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
+        try (Workbook workbook = new XSSFWorkbook(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
@@ -82,27 +80,27 @@ public class ExcelImportUtil {
      * 解析 Excel 文件，包含车辆图片
      * 返回 CarImportRow 列表，每行包含车辆 + 该行嵌入的图片（如果有）
      */
-    public static List<CarImportRow> parseCarsWithImages(MultipartFile file) throws IOException {
+    public static List<CarImportRow> parseCarsWithImages(InputStream inputStream) throws IOException {
         List<CarImportRow> rows = new ArrayList<>();
 
-        try (InputStream is = file.getInputStream(); XSSFWorkbook workbook = new XSSFWorkbook(is)) {
+        try (XSSFWorkbook workbook = new XSSFWorkbook(inputStream)) {
             XSSFSheet sheet = workbook.getSheetAt(0);
 
             // 1. 按行解析车辆数据
-            Map<Integer, Integer> indexToRow = new HashMap<>(); // rows索引 → Excel行号
+            Map<Integer, Integer> indexToRow = new HashMap<>();
             List<Car> cars = new ArrayList<>();
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
                 Car car = parseRow(row);
-                if (car.getBrand() == null || car.getBrand().isBlank()) continue; // 空行跳过
+                if (car.getBrand() == null || car.getBrand().isBlank()) continue;
                 int dataIndex = cars.size();
                 cars.add(car);
                 indexToRow.put(dataIndex, i);
             }
 
-            // 2. 读取 Excel 中嵌入的图片，按行拼装
+            // 2. 读取 Excel 中嵌入的图片，按行匹匹配
             Map<Integer, PictureInfo> rowPictures = extractPicturesByRow(sheet);
 
             // 3. 合并

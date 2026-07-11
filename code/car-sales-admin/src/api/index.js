@@ -39,9 +39,7 @@ export const updateCar = (id, data) => {
   return request.put(`/cars/${id}`, data)
 }
 export const deleteCar = (id) => request.delete(`/cars/${id}`)
-export const importCars = (formData) => request.post('/cars/import', formData, {
-  headers: { 'Content-Type': 'multipart/form-data' }
-})
+export const importCars = (formData) => request.post('/cars/import', formData)
 // 模板下载不走axios拦截器（后端直接返回二进制流）
 export const downloadTemplate = async () => {
   const response = await axios.get('/api/cars/template', {

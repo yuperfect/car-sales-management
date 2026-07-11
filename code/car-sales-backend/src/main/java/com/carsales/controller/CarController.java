@@ -6,6 +6,8 @@ import com.carsales.service.CarService;
 import com.carsales.util.ExcelImportUtil;
 import com.carsales.util.ExcelImportUtil.CarImportRow;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Map;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -139,34 +141,42 @@ public class CarController {
     @PostMapping("/import")
     public ApiResponse<Map<String, Object>> importExcel(@RequestParam("file") MultipartFile file) {
         try {
-            // 先尝试按含图片的格式解析
-            List<CarImportRow> rows = ExcelImportUtil.parseCarsWithImages(file);
-            int saved = carService.saveAllWithImages(rows);
+            // 先将文件读入字节数组，支持多次消费
+            byte[] fileBytes = file.getBytes();
 
-            int withImage = (int) rows.stream().filter(CarImportRow::hasImage).count();
-            int totalCars = rows.size();
-
-            Map<String, Object> result = new java.util.HashMap<>();
-            result.put("success", saved);
-            result.put("total", totalCars);
-            result.put("withImage", withImage);
-            result.put("message", "成功导入 " + saved + "/" + totalCars + " 辆车" +
-                    (withImage > 0 ? "，其中 " + withImage + " 辆含图片" : ""));
-            return ApiResponse.success(result);
-        } catch (Exception e) {
-            // 回退到旧版解析（不含图片）
+            // 先尝试含图片的解析
             try {
-                List<Car> cars = ExcelImportUtil.parseCars(file);
-                carService.saveAll(cars);
+                List<CarImportRow> rows = ExcelImportUtil.parseCarsWithImages(
+                        new ByteArrayInputStream(fileBytes));
+                int saved = carService.saveAllWithImages(rows);
+
+                int withImage = (int) rows.stream().filter(CarImportRow::hasImage).count();
+                int totalCars = rows.size();
+
                 Map<String, Object> result = new java.util.HashMap<>();
-                result.put("success", cars.size());
-                result.put("total", cars.size());
-                result.put("withImage", 0);
-                result.put("message", "成功导入 " + cars.size() + " 辆车");
+                result.put("success", saved);
+                result.put("total", totalCars);
+                result.put("withImage", withImage);
+                result.put("message", "成功导入 " + saved + "/" + totalCars + " 辆车" +
+                        (withImage > 0 ? "，其中 " + withImage + " 辆含图片" : ""));
                 return ApiResponse.success(result);
-            } catch (Exception e2) {
-                return ApiResponse.error("导入失败: " + e2.getMessage());
+            } catch (Exception e1) {
+                // 含图片解析失败时，静默回退到旧版解析（不含图片）
+                System.err.println("含图片解析失败，回退到旧版: " + e1.getMessage());
             }
+
+            // 回退到旧版解析
+            List<Car> cars = ExcelImportUtil.parseCars(new ByteArrayInputStream(fileBytes));
+            carService.saveAll(cars);
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("success", cars.size());
+            result.put("total", cars.size());
+            result.put("withImage", 0);
+            result.put("message", "成功导入 " + cars.size() + " 辆车");
+            return ApiResponse.success(result);
+
+        } catch (Exception e) {
+            return ApiResponse.error("导入失败: " + e.getMessage());
         }
     }
 }
