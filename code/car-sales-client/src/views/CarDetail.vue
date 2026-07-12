@@ -182,7 +182,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getCarById, createAppointment, createOrder } from '../api/index.js'
-import { getCurrentUser, setCurrentUser } from '../utils/user.js'
+import { getCurrentUser, isLoggedIn } from '../utils/user.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -238,9 +238,14 @@ const now = computed(() => {
 })
 
 function openAppointmentModal() {
+  if (!isLoggedIn()) {
+    alert('请先在个人信息页绑定身份后再预约试驾')
+    router.push('/my/profile')
+    return
+  }
   const user = getCurrentUser()
-  apptForm.value.customerName = user?.realName || ''
-  apptForm.value.customerPhone = user?.phone || ''
+  apptForm.value.customerName = user.realName
+  apptForm.value.customerPhone = user.phone
   apptForm.value.appointmentTime = ''
   apptForm.value.remark = ''
   apptSuccess.value = ''
@@ -268,11 +273,6 @@ async function handleAppointmentSubmit() {
       remark: apptForm.value.remark.trim()
     })
 
-    // 如果返回了 customerId 且当前未绑定，自动存 localStorage
-    if (result?.customer?.customerId && !getCurrentUser()) {
-      setCurrentUser(result.customer)
-    }
-
     apptSuccess.value = `预约提交成功！编号: ${result?.appointmentId || ''}`
     setTimeout(() => {
       closeAppointmentModal()
@@ -297,9 +297,14 @@ const orderForm = ref({
 })
 
 function openOrderModal() {
+  if (!isLoggedIn()) {
+    alert('请先在个人信息页绑定身份后再提交订单')
+    router.push('/my/profile')
+    return
+  }
   const user = getCurrentUser()
-  orderForm.value.customerName = user?.realName || ''
-  orderForm.value.customerPhone = user?.phone || ''
+  orderForm.value.customerName = user.realName
+  orderForm.value.customerPhone = user.phone
   orderForm.value.quantity = 1
   orderSuccess.value = ''
   orderErr.value = ''
@@ -324,11 +329,6 @@ async function handleOrderSubmit() {
       carId: car.value.carId,
       quantity: orderForm.value.quantity
     })
-
-    // 如果返回了 customerId 且当前未绑定，自动存 localStorage
-    if (result?.customer?.customerId && !getCurrentUser()) {
-      setCurrentUser(result.customer)
-    }
 
     orderSuccess.value = `订单提交成功！编号: ${result?.orderId || ''}`
     setTimeout(() => {

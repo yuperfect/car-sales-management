@@ -36,6 +36,15 @@ export function setCurrentUser(user) {
 }
 
 /**
+ * 判断用户是否已登录（已设置用户名密码）
+ * @returns {boolean}
+ */
+export function isLoggedIn() {
+  const user = getCurrentUser()
+  return !!(user && user.username)
+}
+
+/**
  * 清除用户身份（退出绑定）
  */
 export function clearCurrentUser() {

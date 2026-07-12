@@ -240,7 +240,7 @@ function formatDate(dt) {
 // ===== 加载用户信息 =====
 async function loadProfile() {
   const u = getCurrentUser()
-  if (!u) {
+  if (!u || !u.username) {
     isBound.value = false
     return
   }

@@ -86,9 +86,9 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { getOrdersByCustomer, cancelOrder } from '../api/index.js'
-import { getCurrentUser } from '../utils/user.js'
+import { getCurrentUser, isLoggedIn } from '../utils/user.js'
 
-const currentUser = computed(() => getCurrentUser())
+const currentUser = computed(() => isLoggedIn() ? getCurrentUser() : null)
 
 const orders = ref([])
 const loading = ref(false)
