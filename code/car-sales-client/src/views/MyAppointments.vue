@@ -1,12 +1,12 @@
 <template>
   <div>
-    <!-- 未绑定提示 -->
+    <!-- 未设置身份提示 -->
     <div v-if="!currentUser" class="card" style="max-width: 560px;">
       <div class="card-body" style="text-align: center; padding: 40px;">
         <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
-        <p style="font-size: 16px; color: var(--text-secondary);">请先在个人信息页绑定身份，即可查看您的所有预约</p>
+        <p style="font-size: 16px; color: var(--text-secondary);">请先在个人信息页设置身份，即可查看您的所有预约</p>
         <button class="btn btn-primary" style="margin-top: 16px;" @click="$router.push('/my/profile')">
-          去绑定
+          去设置
         </button>
       </div>
     </div>
@@ -88,9 +88,9 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { getAppointmentsByCustomer, cancelAppointment } from '../api/index.js'
-import { getCurrentUser, isLoggedIn } from '../utils/user.js'
+import { getCurrentUser, isIdentified } from '../utils/user.js'
 
-const currentUser = computed(() => isLoggedIn() ? getCurrentUser() : null)
+const currentUser = computed(() => isIdentified() ? getCurrentUser() : null)
 
 const appointments = ref([])
 const loading = ref(false)

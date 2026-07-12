@@ -182,7 +182,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getCarById, createAppointment, createOrder } from '../api/index.js'
-import { getCurrentUser, isLoggedIn } from '../utils/user.js'
+import { getCurrentUser } from '../utils/user.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -238,14 +238,14 @@ const now = computed(() => {
 })
 
 function openAppointmentModal() {
-  if (!isLoggedIn()) {
-    alert('请先在个人信息页绑定身份后再预约试驾')
-    router.push('/my/profile')
-    return
-  }
   const user = getCurrentUser()
-  apptForm.value.customerName = user.realName
-  apptForm.value.customerPhone = user.phone
+  if (user && user.realName) {
+    apptForm.value.customerName = user.realName
+    apptForm.value.customerPhone = user.phone
+  } else {
+    apptForm.value.customerName = ''
+    apptForm.value.customerPhone = ''
+  }
   apptForm.value.appointmentTime = ''
   apptForm.value.remark = ''
   apptSuccess.value = ''
@@ -297,14 +297,14 @@ const orderForm = ref({
 })
 
 function openOrderModal() {
-  if (!isLoggedIn()) {
-    alert('请先在个人信息页绑定身份后再提交订单')
-    router.push('/my/profile')
-    return
-  }
   const user = getCurrentUser()
-  orderForm.value.customerName = user.realName
-  orderForm.value.customerPhone = user.phone
+  if (user && user.realName) {
+    orderForm.value.customerName = user.realName
+    orderForm.value.customerPhone = user.phone
+  } else {
+    orderForm.value.customerName = ''
+    orderForm.value.customerPhone = ''
+  }
   orderForm.value.quantity = 1
   orderSuccess.value = ''
   orderErr.value = ''
