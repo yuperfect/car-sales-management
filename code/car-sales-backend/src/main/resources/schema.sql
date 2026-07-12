@@ -29,6 +29,17 @@ CREATE TABLE IF NOT EXISTS customer (
     UNIQUE KEY uk_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户表';
 
+-- 迁移：为已存在的表补充新字段（兼容旧表升级）
+-- continue-on-error=true 会使字段已存在的错误被忽略
+ALTER TABLE customer ADD COLUMN username VARCHAR(50) DEFAULT NULL COMMENT '用户名' AFTER customer_id;
+ALTER TABLE customer ADD COLUMN password VARCHAR(255) DEFAULT NULL COMMENT '密码' AFTER username;
+ALTER TABLE customer ADD COLUMN email VARCHAR(100) DEFAULT NULL COMMENT '邮箱' AFTER phone;
+ALTER TABLE customer ADD COLUMN address VARCHAR(200) DEFAULT NULL COMMENT '地址' AFTER email;
+ALTER TABLE customer ADD COLUMN gender VARCHAR(10) DEFAULT '保密' COMMENT '性别' AFTER address;
+ALTER TABLE customer ADD COLUMN birthday DATE DEFAULT NULL COMMENT '生日' AFTER gender;
+ALTER TABLE customer ADD COLUMN avatar_url VARCHAR(500) DEFAULT NULL COMMENT '头像URL' AFTER birthday;
+ALTER TABLE customer ADD COLUMN update_time DATETIME DEFAULT NULL COMMENT '最后修改时间' AFTER first_submit_time;
+
 -- ============================================
 -- 2. 车辆表 (car)
 -- ============================================
