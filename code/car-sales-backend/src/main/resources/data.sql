@@ -38,7 +38,7 @@ SELECT * FROM (
   UNION ALL
   SELECT '丰田', '凯美瑞', '2.0L', 'CVT无级变速', '白色', 179800.00, 5, 'on_sale', '2026-06-01 08:00:00', '/images/5.jpg'
   UNION ALL
-  SELECT '特斯拉', 'Model Y', '纯电动', '单速变速箱', '红色', 249900.00, 3, 'on_sale', '2026-06-01 08:00:00', '/images/6.jpg'
+  SELECT '特斯拉', 'Model Y', '纯电动', '单速变速箱', '蓝色', 249900.00, 3, 'on_sale', '2026-06-01 08:00:00', '/images/6.jpg'
   UNION ALL
   SELECT '比亚迪', '汉EV', '纯电动', '单速变速箱', '黑色', 209800.00, 4, 'on_sale', '2026-06-01 08:00:00', '/images/7.jpg'
   UNION ALL
@@ -69,7 +69,7 @@ SELECT * FROM (
   UNION ALL
   SELECT '日产', '天籁', '2.0L', 'CVT无级变速', '银色', 179800.00, 5, 'on_sale', '2026-06-25 08:00:00', '/images/19.jpg'
   UNION ALL
-  SELECT '理想', 'L9', '增程式', '单速变速箱', '金色', 429800.00, 2, 'on_sale', '2026-06-25 08:00:00', '/images/20.jpg'
+  SELECT '理想', 'L9', '增程式', '单速变速箱', '黑色', 429800.00, 2, 'on_sale', '2026-06-25 08:00:00', '/images/20.jpg'
 ) tmp
 WHERE (SELECT COUNT(*) FROM car) = 0;
 
