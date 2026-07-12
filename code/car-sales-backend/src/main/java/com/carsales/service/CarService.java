@@ -23,7 +23,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternUtils;
 
 @Service
 public class CarService {
@@ -31,13 +34,16 @@ public class CarService {
     private final CarRepository carRepository;
     private final AppointmentRepository appointmentRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
+    private final ResourceLoader resourceLoader;
 
     public CarService(CarRepository carRepository,
                       AppointmentRepository appointmentRepository,
-                      PurchaseOrderRepository purchaseOrderRepository) {
+                      PurchaseOrderRepository purchaseOrderRepository,
+                      ResourceLoader resourceLoader) {
         this.carRepository = carRepository;
         this.appointmentRepository = appointmentRepository;
         this.purchaseOrderRepository = purchaseOrderRepository;
+        this.resourceLoader = resourceLoader;
     }
 
     public List<Car> findAll() {
@@ -270,8 +276,8 @@ public class CarService {
             Path newDir = Paths.get(UPLOAD_DIR);
             Files.createDirectories(newDir);
 
-            Resource[] resources = new PathMatchingResourcePatternResolver()
-                    .getResources("classpath:static/images/*.jpg");
+            ResourcePatternResolver resolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
+            Resource[] resources = resolver.getResources("classpath:static/images/*.jpg");
 
             for (Resource resource : resources) {
                 try {
