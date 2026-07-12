@@ -10,14 +10,23 @@ USE car_sales_db;
 
 -- ============================================
 -- 1. 客户表 (customer)
--- 说明：客户信息由提交预约或订单时自动创建，无登录功能
+-- 说明：客户信息由提交预约或订单时自动创建，支持用户名密码绑定
 -- ============================================
 CREATE TABLE IF NOT EXISTS customer (
     customer_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '客户编号',
+    username VARCHAR(50) DEFAULT NULL COMMENT '用户名（唯一标识，NULL表示未绑定）',
+    password VARCHAR(255) DEFAULT NULL COMMENT '密码（SHA-256加密，NULL表示未绑定）',
     real_name VARCHAR(50) NOT NULL COMMENT '姓名',
     phone CHAR(11) NOT NULL COMMENT '联系电话（11位手机号）',
+    email VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
+    address VARCHAR(200) DEFAULT NULL COMMENT '地址',
+    gender VARCHAR(10) DEFAULT '保密' COMMENT '性别：男/女/保密',
+    birthday DATE DEFAULT NULL COMMENT '生日',
+    avatar_url VARCHAR(500) DEFAULT NULL COMMENT '头像URL',
     first_submit_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '首次提交时间',
-    UNIQUE KEY uk_phone (phone)
+    update_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '最后修改时间',
+    UNIQUE KEY uk_phone (phone),
+    UNIQUE KEY uk_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户表';
 
 -- ============================================

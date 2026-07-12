@@ -12,5 +12,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
 
     Optional<Customer> findByPhone(String phone);
 
-    List<Customer> findByRealNameContainingAndPhone(String realName, String phone);
+    Optional<Customer> findByUsername(String username);
+
+    List<Customer> findByUsernameContainingOrRealNameContainingOrPhoneContaining(
+            String username, String realName, String phone);
 }

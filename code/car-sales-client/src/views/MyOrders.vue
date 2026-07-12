@@ -1,120 +1,120 @@
 <template>
   <div>
-    <!-- 查询区域 -->
-    <div class="card" style="max-width: 560px; margin-bottom: 20px;">
-      <div class="card-body">
-        <div class="flex gap-8" style="align-items: flex-end;">
-          <div class="form-group" style="flex: 1; margin-bottom: 0;">
-            <label class="form-label">订单编号</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="queryCode"
-              placeholder="请输入订单编号"
-              @keyup.enter="handleQuery"
-            />
-          </div>
-          <button class="btn btn-primary" @click="handleQuery" :disabled="querying">
-            {{ querying ? '查询中...' : '查询' }}
-          </button>
-        </div>
-        <div v-if="queryErr" class="alert alert-error" style="margin-top: 12px;">{{ queryErr }}</div>
+    <!-- 未绑定提示 -->
+    <div v-if="!currentUser" class="card" style="max-width: 560px;">
+      <div class="card-body" style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
+        <p style="font-size: 16px; color: var(--text-secondary);">请先在个人信息页绑定身份，即可查看您的所有订单</p>
+        <button class="btn btn-primary" style="margin-top: 16px;" @click="$router.push('/my/profile')">
+          去绑定
+        </button>
       </div>
     </div>
 
-    <!-- 结果详情 -->
-    <div v-if="order" class="card">
-      <div class="card-body">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 style="margin: 0;">订单详情</h3>
-          <span class="tag" :class="statusClass(order.status)">
-            {{ statusText(order.status) }}
-          </span>
-        </div>
+    <!-- 已绑定：列表视图 -->
+    <div v-else>
+      <!-- 状态筛选 -->
+      <div class="filter-bar">
+        <button v-for="tab in statusTabs" :key="tab.value"
+                class="filter-btn"
+                :class="{ active: activeStatus === tab.value }"
+                @click="activeStatus = tab.value">
+          {{ tab.label }}
+        </button>
+      </div>
 
-        <div class="detail-specs">
-          <div class="spec-item">
-            <div class="spec-label">订单编号</div>
-            <div class="spec-value">{{ order.orderId }}</div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-label">车辆</div>
-            <div class="spec-value">
-              <router-link :to="`/cars/${order.carId}`">
-                {{ order.carBrand || order.brand || '—' }} {{ order.carModel || order.model || '' }}
-              </router-link>
+      <!-- Loading -->
+      <div v-if="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>加载中...</p>
+      </div>
+
+      <!-- Empty -->
+      <div v-else-if="filteredList.length === 0" class="empty-state">
+        <div class="empty-icon">📦</div>
+        <p>{{ activeStatus === 'all' ? '还没有订单记录' : '没有对应状态的订单记录' }}</p>
+        <button class="btn btn-primary" @click="$router.push('/')">去选车</button>
+      </div>
+
+      <!-- 列表 -->
+      <div v-else class="list-container">
+        <div v-for="item in filteredList" :key="item.orderId" class="list-card card">
+          <div class="list-card-body">
+            <div class="list-card-header">
+              <span class="list-card-id">#{{ item.orderId }}</span>
+              <span class="tag" :class="statusClass(item.status)">{{ statusText(item.status) }}</span>
+            </div>
+            <div class="list-card-info">
+              <div class="info-row">
+                <span class="info-label">车辆</span>
+                <span class="info-value">
+                  <router-link :to="`/cars/${item.carId}`">
+                    {{ item.carBrand || '—' }} {{ item.carModel || '' }}
+                  </router-link>
+                </span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">数量</span>
+                <span class="info-value">{{ item.quantity }} 辆</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">总价</span>
+                <span class="info-value" style="color: var(--danger); font-weight: 600;">
+                  ¥{{ formatPrice(item.totalAmount) }}
+                </span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">下单时间</span>
+                <span class="info-value">{{ item.orderTime || '—' }}</span>
+              </div>
+            </div>
+            <div class="list-card-actions" v-if="item.status === 'pending'">
+              <button class="btn btn-danger btn-sm" @click="handleCancel(item)" :disabled="cancellingId === item.orderId">
+                {{ cancellingId === item.orderId ? '取消中...' : '取消订单' }}
+              </button>
             </div>
           </div>
-          <div class="spec-item">
-            <div class="spec-label">数量</div>
-            <div class="spec-value">{{ order.quantity }}</div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-label">单价</div>
-            <div class="spec-value">¥{{ formatPrice(order.unitPrice || order.price) }}</div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-label">总价</div>
-            <div class="spec-value" style="color: var(--danger); font-weight: 600;">
-              ¥{{ formatPrice(order.totalAmount || order.totalPrice) }}
-            </div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-label">下单时间</div>
-            <div class="spec-value">{{ order.orderTime || '—' }}</div>
-          </div>
-          <div class="spec-item" v-if="order.handler">
-            <div class="spec-label">处理人</div>
-            <div class="spec-value">{{ order.handler }}</div>
-          </div>
-          <div class="spec-item" v-if="order.handleTime">
-            <div class="spec-label">处理时间</div>
-            <div class="spec-value">{{ order.handleTime }}</div>
-          </div>
-        </div>
-
-        <div style="margin-top: 20px;">
-          <button
-            v-if="order.status === 'pending'"
-            class="btn btn-danger"
-            @click="handleCancel(order)"
-            :disabled="cancelling"
-          >
-            {{ cancelling ? '取消中...' : '取消订单' }}
-          </button>
         </div>
       </div>
+
+      <!-- 错误提示 -->
+      <div v-if="errMsg" class="alert alert-error" style="margin-top: 12px;">{{ errMsg }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { getOrderByCode, cancelOrder } from '../api/index.js'
+import { ref, computed, watch, onMounted } from 'vue'
+import { getOrdersByCustomer, cancelOrder } from '../api/index.js'
+import { getCurrentUser } from '../utils/user.js'
 
-const queryCode = ref('')
-const order = ref(null)
-const querying = ref(false)
-const queryErr = ref('')
-const cancelling = ref(false)
+const currentUser = computed(() => getCurrentUser())
+
+const orders = ref([])
+const loading = ref(false)
+const errMsg = ref('')
+const activeStatus = ref('all')
+const cancellingId = ref(null)
+
+const statusTabs = [
+  { label: '全部', value: 'all' },
+  { label: '待处理', value: 'pending' },
+  { label: '已确认', value: 'confirmed' },
+  { label: '已取消', value: 'cancelled' }
+]
+
+const filteredList = computed(() => {
+  if (activeStatus.value === 'all') return orders.value
+  return orders.value.filter(o => o.status === activeStatus.value)
+})
 
 function statusClass(status) {
-  const map = {
-    'pending': 'tag-pending',
-    'confirmed': 'tag-confirmed',
-    'completed': 'tag-completed',
-    'cancelled': 'tag-cancelled'
-  }
+  const map = { 'pending': 'tag-pending', 'confirmed': 'tag-confirmed', 'cancelled': 'tag-cancelled' }
   return map[status] || 'tag-pending'
 }
 
 function statusText(status) {
-  const map = {
-    'pending': '待处理',
-    'confirmed': '已确认',
-    'completed': '已完成',
-    'cancelled': '已取消'
-  }
+  const map = { 'pending': '待处理', 'confirmed': '已确认', 'cancelled': '已取消' }
   return map[status] || status
 }
 
@@ -123,38 +123,110 @@ function formatPrice(price) {
   return Number(price).toLocaleString('zh-CN')
 }
 
-async function handleQuery() {
-  const code = queryCode.value.trim()
-  if (!code) {
-    queryErr.value = '请输入订单编号'
-    return
-  }
+async function fetchList() {
+  const user = getCurrentUser()
+  if (!user) return
 
-  querying.value = true
-  queryErr.value = ''
-  order.value = null
-
+  loading.value = true
+  errMsg.value = ''
   try {
-    order.value = await getOrderByCode(code)
+    orders.value = await getOrdersByCustomer(user.customerId)
   } catch (e) {
-    queryErr.value = e.message || '查询失败，请检查编号是否正确'
+    errMsg.value = e.message || '获取订单列表失败'
   } finally {
-    querying.value = false
+    loading.value = false
   }
 }
 
 async function handleCancel(item) {
-  const orderId = order.value?.orderId
-  if (!orderId) return
-  if (!confirm(`确定要取消订单 #${orderId} 吗？`)) return
-  cancelling.value = true
+  if (!confirm(`确定要取消订单 #${item.orderId} 吗？`)) return
+  cancellingId.value = item.orderId
   try {
-    await cancelOrder(orderId)
-    order.value.status = 'cancelled'
+    await cancelOrder(item.orderId)
+    item.status = 'cancelled'
   } catch (e) {
-    alert('取消失败: ' + (e.message || '请重试'))
+    errMsg.value = e.message || '取消失败'
   } finally {
-    cancelling.value = false
+    cancellingId.value = null
   }
 }
+
+onMounted(() => {
+  if (currentUser.value) fetchList()
+})
+
+watch(currentUser, (val) => {
+  if (val) fetchList()
+})
 </script>
+
+<style scoped>
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.filter-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.filter-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.list-card-body {
+  padding: 16px;
+}
+.list-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.list-card-id {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+.info-row {
+  display: flex;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.info-label {
+  width: 70px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.info-value {
+  color: var(--text);
+  word-break: break-all;
+}
+.list-card-actions {
+  text-align: right;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.btn-sm {
+  padding: 4px 12px;
+  font-size: 13px;
+}
+</style>

@@ -14,22 +14,10 @@ const routes = [
     meta: { title: '车辆详情' }
   },
   {
-    path: '/appointment/new',
-    name: 'AppointmentNew',
-    component: () => import('../views/AppointmentNew.vue'),
-    meta: { title: '提交预约' }
-  },
-  {
     path: '/my/appointments',
     name: 'MyAppointments',
     component: () => import('../views/MyAppointments.vue'),
     meta: { title: '我的预约' }
-  },
-  {
-    path: '/orders/new',
-    name: 'OrderNew',
-    component: () => import('../views/OrderNew.vue'),
-    meta: { title: '提交订单' }
   },
   {
     path: '/my/orders',
@@ -38,10 +26,10 @@ const routes = [
     meta: { title: '我的订单' }
   },
   {
-    path: '/query',
-    name: 'QueryLookup',
-    component: () => import('../views/QueryLookup.vue'),
-    meta: { title: '查询中心' }
+    path: '/my/profile',
+    name: 'Profile',
+    component: () => import('../views/CustomerProfile.vue'),
+    meta: { title: '个人信息' }
   }
 ]
 

@@ -8,7 +8,7 @@
         <input
           v-model="searchKeyword"
           class="form-input"
-          placeholder="搜索姓名 / 电话..."
+          placeholder="搜索用户名 / 姓名 / 电话..."
           @keyup.enter="doSearch"
         />
         <button class="btn btn-primary" @click="doSearch">搜索</button>
@@ -27,20 +27,30 @@
           <thead>
             <tr>
               <th>ID</th>
+              <th>用户名</th>
               <th>姓名</th>
               <th>电话</th>
-              <th>首次提交时间</th>
+              <th>性别</th>
+              <th>邮箱</th>
+              <th>注册时间</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="customer in customers" :key="customer.customerId">
               <td>{{ customer.customerId }}</td>
+              <td>
+                <span :class="customer.username ? '' : 'text-muted'">
+                  {{ customer.username || '未绑定' }}
+                </span>
+              </td>
               <td>{{ customer.realName || '-' }}</td>
               <td>{{ customer.phone || '-' }}</td>
+              <td>{{ customer.gender || '保密' }}</td>
+              <td>{{ customer.email || '-' }}</td>
               <td>{{ formatDate(customer.firstSubmitTime) }}</td>
             </tr>
             <tr v-if="customers.length === 0">
-              <td colspan="4" style="text-align: center; color: #999;">暂无数据</td>
+              <td colspan="7" style="text-align: center; color: #999;">暂无数据</td>
             </tr>
           </tbody>
         </table>
@@ -92,3 +102,7 @@ function formatDate(dateStr) {
   })
 }
 </script>
+
+<style scoped>
+.text-muted { color: #999; font-style: italic; }
+</style>

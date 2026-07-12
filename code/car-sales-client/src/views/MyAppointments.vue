@@ -1,146 +1,230 @@
 <template>
   <div>
-    <!-- 查询区域 -->
-    <div class="card" style="max-width: 560px; margin-bottom: 20px;">
-      <div class="card-body">
-        <div class="flex gap-8" style="align-items: flex-end;">
-          <div class="form-group" style="flex: 1; margin-bottom: 0;">
-            <label class="form-label">预约编号</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="queryCode"
-              placeholder="请输入预约编号"
-              @keyup.enter="handleQuery"
-            />
-          </div>
-          <button class="btn btn-primary" @click="handleQuery" :disabled="querying">
-            {{ querying ? '查询中...' : '查询' }}
-          </button>
-        </div>
-        <div v-if="queryErr" class="alert alert-error" style="margin-top: 12px;">{{ queryErr }}</div>
+    <!-- 未绑定提示 -->
+    <div v-if="!currentUser" class="card" style="max-width: 560px;">
+      <div class="card-body" style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+        <p style="font-size: 16px; color: var(--text-secondary);">请先在个人信息页绑定身份，即可查看您的所有预约</p>
+        <button class="btn btn-primary" style="margin-top: 16px;" @click="$router.push('/my/profile')">
+          去绑定
+        </button>
       </div>
     </div>
 
-    <!-- 结果详情 -->
-    <div v-if="appointment" class="card">
-      <div class="card-body">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 style="margin: 0;">预约详情</h3>
-          <span class="tag" :class="statusClass(appointment.status)">
-            {{ statusText(appointment.status) }}
-          </span>
-        </div>
+    <!-- 已绑定：列表视图 -->
+    <div v-else>
+      <!-- 状态筛选 -->
+      <div class="filter-bar">
+        <button v-for="tab in statusTabs" :key="tab.value"
+                class="filter-btn"
+                :class="{ active: activeStatus === tab.value }"
+                @click="activeStatus = tab.value">
+          {{ tab.label }}
+        </button>
+      </div>
 
-        <div class="detail-specs">
-          <div class="spec-item">
-            <div class="spec-label">预约编号</div>
-            <div class="spec-value">{{ appointment.appointmentId }}</div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-label">姓名</div>
-            <div class="spec-value">{{ appointment.customerName }}</div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-label">电话</div>
-            <div class="spec-value">{{ appointment.customerPhone }}</div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-label">车辆</div>
-            <div class="spec-value">
-              <router-link :to="`/cars/${appointment.carId}`">
-                {{ appointment.carBrand || appointment.brand || '—' }} {{ appointment.carModel || appointment.model || '' }}
-              </router-link>
+      <!-- Loading -->
+      <div v-if="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>加载中...</p>
+      </div>
+
+      <!-- Empty -->
+      <div v-else-if="filteredList.length === 0" class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>{{ activeStatus === 'all' ? '还没有预约记录' : '没有对应状态的预约记录' }}</p>
+        <button class="btn btn-primary" @click="$router.push('/')">去选车</button>
+      </div>
+
+      <!-- 列表 -->
+      <div v-else class="list-container">
+        <div v-for="item in filteredList" :key="item.appointmentId" class="list-card card">
+          <div class="list-card-body">
+            <div class="list-card-header">
+              <span class="list-card-id">#{{ item.appointmentId }}</span>
+              <span class="tag" :class="statusClass(item.status)">{{ statusText(item.status) }}</span>
+            </div>
+            <div class="list-card-info">
+              <div class="info-row">
+                <span class="info-label">车辆</span>
+                <span class="info-value">
+                  <router-link :to="`/cars/${item.carId}`">
+                    {{ item.carBrand || '—' }} {{ item.carModel || '' }}
+                  </router-link>
+                </span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">姓名</span>
+                <span class="info-value">{{ item.customerName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">电话</span>
+                <span class="info-value">{{ item.customerPhone }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">预约时间</span>
+                <span class="info-value">{{ item.appointmentTime }}</span>
+              </div>
+              <div class="info-row" v-if="item.remark">
+                <span class="info-label">备注</span>
+                <span class="info-value">{{ item.remark }}</span>
+              </div>
+            </div>
+            <div class="list-card-actions" v-if="item.status === 'pending'">
+              <button class="btn btn-danger btn-sm" @click="handleCancel(item)" :disabled="cancellingId === item.appointmentId">
+                {{ cancellingId === item.appointmentId ? '取消中...' : '取消预约' }}
+              </button>
             </div>
           </div>
-          <div class="spec-item">
-            <div class="spec-label">预约时间</div>
-            <div class="spec-value">{{ appointment.appointmentTime }}</div>
-          </div>
-          <div class="spec-item" v-if="appointment.remark">
-            <div class="spec-label">备注</div>
-            <div class="spec-value">{{ appointment.remark }}</div>
-          </div>
         </div>
-
-        <!-- 取消预约按钮（仅待确认状态可取消） -->
-        <div style="margin-top: 20px; text-align: right;" v-if="appointment.status === 'pending'">
-          <button class="btn btn-danger" @click="handleCancel" :disabled="cancelling">
-            {{ cancelling ? '取消中...' : '取消预约' }}
-          </button>
-        </div>
-        <div v-if="cancelErr" class="alert alert-error" style="margin-top: 12px;">{{ cancelErr }}</div>
-        <div v-if="cancelSuccess" class="alert alert-success">{{ cancelSuccess }}</div>
       </div>
+
+      <!-- 错误提示 -->
+      <div v-if="errMsg" class="alert alert-error" style="margin-top: 12px;">{{ errMsg }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { getAppointmentByCode, cancelAppointment } from '../api/index.js'
+import { ref, computed, watch, onMounted } from 'vue'
+import { getAppointmentsByCustomer, cancelAppointment } from '../api/index.js'
+import { getCurrentUser } from '../utils/user.js'
 
-const queryCode = ref('')
-const appointment = ref(null)
-const querying = ref(false)
-const queryErr = ref('')
-const cancelling = ref(false)
-const cancelErr = ref('')
-const cancelSuccess = ref('')
+const currentUser = computed(() => getCurrentUser())
+
+const appointments = ref([])
+const loading = ref(false)
+const errMsg = ref('')
+const activeStatus = ref('all')
+const cancellingId = ref(null)
+
+const statusTabs = [
+  { label: '全部', value: 'all' },
+  { label: '待确认', value: 'pending' },
+  { label: '已确认', value: 'confirmed' },
+  { label: '已取消', value: 'cancelled' }
+]
+
+const filteredList = computed(() => {
+  if (activeStatus.value === 'all') return appointments.value
+  return appointments.value.filter(a => a.status === activeStatus.value)
+})
 
 function statusClass(status) {
-  const map = {
-    'pending': 'tag-pending',
-    'confirmed': 'tag-confirmed',
-    'cancelled': 'tag-cancelled'
-  }
+  const map = { 'pending': 'tag-pending', 'confirmed': 'tag-confirmed', 'cancelled': 'tag-cancelled' }
   return map[status] || 'tag-pending'
 }
 
 function statusText(status) {
-  const map = {
-    'pending': '待确认',
-    'confirmed': '已确认',
-    'cancelled': '已取消'
-  }
+  const map = { 'pending': '待确认', 'confirmed': '已确认', 'cancelled': '已取消' }
   return map[status] || status
 }
 
-async function handleCancel() {
-  if (!confirm('确定要取消该预约吗？')) return
-  cancelling.value = true
-  cancelErr.value = ''
-  cancelSuccess.value = ''
+async function fetchList() {
+  const user = getCurrentUser()
+  if (!user) return
+
+  loading.value = true
+  errMsg.value = ''
   try {
-    await cancelAppointment(appointment.value.appointmentId)
-    cancelSuccess.value = '预约已取消成功'
-    appointment.value.status = 'cancelled'
+    appointments.value = await getAppointmentsByCustomer(user.customerId)
   } catch (e) {
-    cancelErr.value = e.message || '取消失败，请重试'
+    errMsg.value = e.message || '获取预约列表失败'
   } finally {
-    cancelling.value = false
+    loading.value = false
   }
 }
 
-async function handleQuery() {
-  const code = queryCode.value.trim()
-  if (!code) {
-    queryErr.value = '请输入预约编号'
-    return
-  }
-
-  querying.value = true
-  queryErr.value = ''
-  appointment.value = null
-  cancelErr.value = ''
-  cancelSuccess.value = ''
-
+async function handleCancel(item) {
+  if (!confirm(`确定要取消预约 #${item.appointmentId} 吗？`)) return
+  cancellingId.value = item.appointmentId
   try {
-    appointment.value = await getAppointmentByCode(code)
+    await cancelAppointment(item.appointmentId)
+    item.status = 'cancelled'
   } catch (e) {
-    queryErr.value = e.message || '查询失败，请检查编号是否正确'
+    errMsg.value = e.message || '取消失败'
   } finally {
-    querying.value = false
+    cancellingId.value = null
   }
 }
+
+onMounted(() => {
+  if (currentUser.value) fetchList()
+})
+
+// 监听绑定状态变化：如果用户切换到已绑定，重新加载
+watch(currentUser, (val) => {
+  if (val) fetchList()
+})
 </script>
+
+<style scoped>
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.filter-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.filter-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.list-card-body {
+  padding: 16px;
+}
+.list-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.list-card-id {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+.info-row {
+  display: flex;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.info-label {
+  width: 70px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.info-value {
+  color: var(--text);
+  word-break: break-all;
+}
+.list-card-actions {
+  text-align: right;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.btn-sm {
+  padding: 4px 12px;
+  font-size: 13px;
+}
+</style>
