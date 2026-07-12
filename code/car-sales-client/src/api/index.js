@@ -109,6 +109,11 @@ export function getCustomer(id) {
   return request.get(`/customers/${id}`)
 }
 
+/** 根据用户名查找或创建客户（无需密码） */
+export function findOrCreateCustomer(username) {
+  return request.post('/customers/switch', { username })
+}
+
 /** 绑定（注册） */
 export function bindAccount(data) {
   return request.post('/customers/bind', data)

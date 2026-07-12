@@ -22,6 +22,22 @@ public class CustomerController {
     }
 
     /**
+     * 根据用户名查找或创建客户（无需密码）
+     */
+    @PostMapping("/switch")
+    public ApiResponse<Customer> findOrCreate(@RequestBody Map<String, String> body) {
+        try {
+            String username = body.get("username");
+            if (username == null || username.isBlank()) {
+                return ApiResponse.error("用户名不能为空");
+            }
+            return ApiResponse.success(customerService.findOrCreate(username));
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
      * 客户列表（管理端用）
      */
     @GetMapping

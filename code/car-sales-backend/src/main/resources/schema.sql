@@ -40,6 +40,9 @@ ALTER TABLE customer ADD COLUMN birthday DATE DEFAULT NULL COMMENT '生日' AFTE
 ALTER TABLE customer ADD COLUMN avatar_url VARCHAR(500) DEFAULT NULL COMMENT '头像URL' AFTER birthday;
 ALTER TABLE customer ADD COLUMN update_time DATETIME DEFAULT NULL COMMENT '最后修改时间' AFTER first_submit_time;
 
+-- 迁移：将 phone 字段改为允许 NULL（支持无手机号的用户）
+ALTER TABLE customer MODIFY COLUMN phone CHAR(11) DEFAULT NULL COMMENT '联系电话（11位手机号）';
+
 -- ============================================
 -- 2. 车辆表 (car)
 -- ============================================

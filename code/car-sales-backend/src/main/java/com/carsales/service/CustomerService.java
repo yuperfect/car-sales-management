@@ -92,6 +92,32 @@ public class CustomerService {
                 .orElseThrow(() -> new RuntimeException("客户不存在，ID: " + id));
     }
 
+    /**
+     * 根据用户名查找客户，不存在则自动创建。
+     * 如果存在同名但未设用户名的客户（由预约/下单自动创建），则认领该客户。
+     */
+    @Transactional
+    public Customer findOrCreate(String username) {
+        return customerRepository.findByUsername(username)
+                .orElseGet(() -> {
+                    // 查找是否存在同名但未设用户名的"无主"客户（由预约/下单流程创建）
+                    List<Customer> unclaimed = customerRepository.findByRealNameAndUsernameIsNull(username);
+                    if (!unclaimed.isEmpty()) {
+                        Customer existing = unclaimed.get(0);
+                        existing.setUsername(username);
+                        existing.setUpdateTime(LocalDateTime.now());
+                        return customerRepository.save(existing);
+                    }
+                    // 全新客户
+                    Customer newCustomer = new Customer();
+                    newCustomer.setUsername(username);
+                    newCustomer.setRealName(username);
+                    newCustomer.setPhone(null);
+                    newCustomer.setFirstSubmitTime(LocalDateTime.now());
+                    return customerRepository.save(newCustomer);
+                });
+    }
+
     public List<Customer> findAll(String keyword) {
         if (keyword != null && !keyword.isBlank()) {
             return customerRepository.findByUsernameContainingOrRealNameContainingOrPhoneContaining(
