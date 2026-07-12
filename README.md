@@ -19,11 +19,11 @@
 
 **客户端**
 
-![屏幕截图 2026-07-12 162109](https://gitee.com/yu-haichao1/typora-image/raw/master/picture/20260712163505742.png)
+![屏幕截图 2026-07-12 162109](image/20260712163505742.png)
 
 **管理员端**
 
-![image-20260712163715486](https://gitee.com/yu-haichao1/typora-image/raw/master/picture/20260712163715701.png)
+![image-20260712163715486](image/20260712163715701.png)
 
 ## 4. 素材来源说明
 
